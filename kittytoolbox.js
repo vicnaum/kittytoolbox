@@ -236,7 +236,7 @@ function getPrice(cat) {
 }
 
 function getPortfolio(owner) {
-  url = 'https://107.191.100.38:3333/getPortfolio?owner='+owner;
+  url = 'https://microetheroll.com:3333/getPortfolio?owner='+owner;
 //  url = 'http://localhost:3333/getPortfolio?owner='+owner;
   return doRequest(url)
 }

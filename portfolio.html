@@ -52,7 +52,7 @@ function getAllCats(owner) {
   c.cls()
   showLoading()
   owner = document.getElementById("owner").value;
-  history.pushState({"owner": owner}, "Portfolio of "+owner, "/portfolio.html?owner="+owner);
+  history.pushState({"owner": owner}, "Portfolio of "+owner, "/kittytoolbox/portfolio.html?owner="+owner);
   setTimeout(()=>{getPortfolio(owner, hideLoading)}, 100)
 }
 
