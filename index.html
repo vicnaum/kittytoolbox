@@ -37,7 +37,7 @@ img {
 <div id='loader' style="width: 100%; height: 100px; display: none"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>
 <div style="margin-top: 20px">
 KittyId: <input id="kittyId"/>
-<button onclick="search()">Estimate</button>
+<button onclick="search(null)">Estimate</button>
 <button onclick="c.cls()">Clear</button>
 </div>
 </body>
@@ -46,7 +46,7 @@ KittyId: <input id="kittyId"/>
 const node = document.getElementById("kittyId");
 node.addEventListener('keydown', function(event) {
     if (event.key === "Enter") {
-      search()
+      search(null)
 	node.value = ""
     }
 });
