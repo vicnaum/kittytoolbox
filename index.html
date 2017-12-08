@@ -23,6 +23,7 @@ img {
 <body>
 <h1>CryptoKitties - Cat Rarity Calculator</h1>
 <div id='console'></div>
+<div id='loader' style="width: 100%; height: 100px; display: none"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>
 <div style="margin-top: 20px">
 KittyId: <input id="kittyId"/>
 <button onclick="getRarity()">Get Rarity</button>
@@ -35,6 +36,7 @@ const node = document.getElementById("kittyId");
 node.addEventListener('keydown', function(event) {
     if (event.key === "Enter") {
         getRarity()
+	node.value = ""
     }
 });
 
@@ -84,11 +86,15 @@ var totalKitties = 133992
 
 function getRarity() {
   var kittyId = document.getElementById("kittyId").value;
+  document.getElementById("loader").style = "width: 100%; height: 100px; display: block;";
+
+
   myBundle.getKittyCS(kittyId, (error, cat) => {
     c.log(cat.image_url, `#${kittyId} - ${cat.name}
                        - GEN:${cat.generation}
                        - Cooldown:${cat.status.cooldown_index}`,
                        `RARITY: ${(calculateRarity(cat)*100*100000).toFixed(2)}% === ` + printCattributes(cat))
+    document.getElementById("loader").style = "width: 100%; height: 100px; display: none;";
   })
 }
 
