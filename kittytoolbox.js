@@ -115,37 +115,47 @@ function calculateRarity(cat) {
   return rarity
 }
 
+function formAuctionSearchParameters(gen, fancy, cattributes, cooldown){
+    let req = ""
+    if (gen || fancy || cattributes || cooldown) {
+      req += "&search="
+    }
+    if (gen) {
+      req += "gen:" + gen
+    }
+    if (gen && fancy) {
+      req += "+"
+    }
+    if (fancy) {
+      req += "type:fancy"
+    }
+    if ((gen || fancy) && cattributes) {
+      req += "+"
+    }
+    if (cattributes) {
+      req += cattributes
+    }
+    if ((gen || fancy || cattributes) && cooldown) {
+      req += "+"
+    }
+    if (cooldown) {
+      req += "cooldown:"+cooldown
+    }
+    return req
+}
+
 function getAuctions(gen, fancy, cattributes, cooldown) {
   console.log(`\n\n\nGetting Auctions, gen:${gen}, fancy:${fancy}, cattributes:${cattributes}, cooldown:${cooldown}\n`)
 
-  let req = ""
-  if (gen || fancy || cattributes || cooldown) {
-    req += "&search="
-  }
-  if (gen) {
-    req += "gen:" + gen
-  }
-  if (gen && fancy) {
-    req += "+"
-  }
-  if (fancy) {
-    req += "type:fancy"
-  }
-  if ((gen || fancy) && cattributes) {
-    req += "+"
-  }
-  if (cattributes) {
-    req += cattributes
-  }
-  if ((gen || fancy || cattributes) && cooldown) {
-    req += "+"
-  }
-  if (cooldown) {
-    req += "cooldown:"+cooldown
-  }
+  var req = formAuctionSearchParameters(gen, fancy, cattributes, cooldown)
 
   var url = CSApi + "auctions?offset=0&limit=12&type=sale&status=open" + req + '&sorting=cheap&orderBy=current_price&orderDirection=asc'
   return doRequest(url)
+}
+
+function getSearchLink(gen, fancy, cattributes, cooldown) {
+    var req = formAuctionSearchParameters(gen, fancy, cattributes, cooldown)
+    return "https://www.cryptokitties.co/marketplace/sale?orderBy=current_price&orderDirection=asc&" + req + '&sorting=cheap'    
 }
 
 function getPrices(cat, sortedCattributes) {
@@ -153,13 +163,13 @@ function getPrices(cat, sortedCattributes) {
   var gen
   var cattributes
   var cooldown
-
+  
   gen = Array.from({length: cat.generation+1}, (v, k) => k).join(",");
   cooldown = Array.from({length: cat.status.cooldown_index+1}, (v, k) => cooldowns[k]).join(",");
 
   if (cat.is_fancy) {
     fancy = true
-    return [getAuctions(gen,fancy,cattributes,cooldown),["fancy"],[]]
+    return [getAuctions(gen,fancy,cattributes,cooldown),["fancy"],[],getSearchLink(gen,fancy,cattributes,cooldown)]
   } else {
     auctionsTotal = 0
     var searchCattributes = []
@@ -180,12 +190,12 @@ function getPrices(cat, sortedCattributes) {
         searchCattributes.splice(-1,1)
       }
     }
-    return [auctions, searchCattributes, excludedCattributes]
+    return [auctions, searchCattributes, excludedCattributes, getSearchLink(gen,fancy,searchCattributes.join("+"),cooldown)]
 
   }
 }
 
-function processAuctions(auctions, cat, searchCattributes, excludedCattributes) {
+function processAuctions(auctions, cat, searchCattributes, excludedCattributes, searchLink) {
 
   var prices = []
   var str = "";
@@ -206,13 +216,17 @@ function processAuctions(auctions, cat, searchCattributes, excludedCattributes) 
   str += `\nEstimation based on the following attributes: ` + searchCattributes.join(',')
   str += `\nSearched generations ${cat.generation} and below and cooldown ${cooldowns[cat.status.cooldown_index]} or faster`
 
+  if (cat.is_fancy) {
+      str += `\n\nThe cat is FANCY, so it's hard to estimate it. Keep attention to it's color also!`
+  }
+
   if (excludedCattributes.length > 0) {
     str += `\n\n---\nWARNING! The following interesting attributes were excluded: ` + excludedCattributes.join(',')
     str += `\n\nBecause there are no cats like yours on the market with the given gen & cooldown`
     str += `\nconsider raising a price after better market investigation `
   }
 
-  return str
+  return [str, searchLink]
 }
 
 function getPrice(cat) {
@@ -222,8 +236,9 @@ function getPrice(cat) {
   var auctions = ret[0]
   var searchCattributes = ret[1]
   var excludedCattributes = ret[2]
+  var searchLink = ret[3]
   
-  return processAuctions(auctions, cat, searchCattributes, excludedCattributes)
+  return processAuctions(auctions, cat, searchCattributes, excludedCattributes, searchLink)
 }
 
 

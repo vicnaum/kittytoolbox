@@ -72,9 +72,13 @@ function getRarity(kittyId, callback) {
   cats[kittyId] = cat
 
   console.log(cat)
+
+  var rarity = (kittytoolbox.calculateRarity(cat)*100*100000).toFixed(2)
+  var priceData = kittytoolbox.getPrice(cat)
+
   c.log(cat.image_url, `#${kittyId} - ${cat.name} - GEN:${cat.generation} - Cooldown:${cat.status.cooldown_index}`,
-                       `RARITY: ${(kittytoolbox.calculateRarity(cat)*100*100000).toFixed(2)}% === ` + kittytoolbox.printCattributes(cat),
-                       kittytoolbox.getPrice(cat), cat.id, kittytoolbox.colors[cat.color])
+                       `RARITY: ${rarity}% === ` + kittytoolbox.printCattributes(cat),
+                       priceData[0], priceData[1], cat.id, kittytoolbox.colors[cat.color])
   
   callback()
 }
@@ -82,7 +86,7 @@ function getRarity(kittyId, callback) {
 /* console.log function from: http://www.kobashicomputing.com/send-your-console-output-to-the-result-pane-in-jsfiddle */
 var c = function() {
     return({
-        log: function(img, line1, line2, line3, kittyId, color) {
+        log: function(img, line1, line2, line3, searchLink, kittyId, color) {
           consoleDiv = document.getElementById('console')
 
           a = document.createElement('a')
@@ -110,6 +114,11 @@ var c = function() {
           text2 = document.createTextNode(line2)
           text3 = document.createTextNode(line3)
 
+          search = document.createElement('a')
+          search.href = searchLink
+          search.appendChild(document.createTextNode('See Searched Auctions'))
+          
+
           a.appendChild(image)
           imgdiv.appendChild(a)
           para1.appendChild(text1)
@@ -123,6 +132,8 @@ var c = function() {
           para3.appendChild(text3)
           pricediv.appendChild(para3)
           
+          pricediv.appendChild(search)
+
           div.appendChild(imgdiv)
           div.appendChild(textdiv)
           div.appendChild(pricediv)
