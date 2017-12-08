@@ -115,7 +115,7 @@ function displayCat(cat) {
 
    c.cat(cat.image_url, `#${cat.id} - ${cat.name} - GEN:${cat.generation} - Cooldown:${cat.status.cooldown_index}`,
                         `RARITY: ${rarity}% === ` + kittytoolbox.printCattributes(cat),
-                        priceData[0], priceData[1], cat.id, kittytoolbox.colors[cat.color])
+                        priceData[0], priceData[1], cat.id, kittytoolbox.colors[cat.color], cat.auction)
 }
 
 /* console.log function from: http://www.kobashicomputing.com/send-your-console-output-to-the-result-pane-in-jsfiddle */
@@ -135,7 +135,7 @@ var c = function() {
           para.appendChild(text);
           consoleDiv.appendChild(para);
         },
-        cat: function(img, line1, line2, line3, searchLink, kittyId, color) {
+        cat: function(img, line1, line2, line3, searchLink, kittyId, color, auction) {
           consoleDiv = document.getElementById('console')
 
           a = document.createElement('a')
@@ -155,9 +155,11 @@ var c = function() {
           textdiv.classList.add('inline')
           pricediv = document.createElement('div')
           pricediv.classList.add('price')
+          
           para1 = document.createElement('p')
           para2 = document.createElement('p')
           para3 = document.createElement('pre')
+
           text1 = document.createTextNode(line1)
           text2 = document.createTextNode(line2)
           text3 = document.createTextNode(line3)
@@ -174,6 +176,22 @@ var c = function() {
           b = document.createElement('b')
           b.appendChild(text2)
           para2.appendChild(b)
+
+          console.log(auction)
+          if (Object.keys(auction).length > 0) {
+            link = document.createElement('a')
+            link.style.color = "red"
+            link.href = ('https://www.cryptokitties.co/kitty/'+kittyId)
+
+            para0 = document.createElement('h2')
+            text0 = document.createTextNode('SELLING AT: ' + kittytoolbox.fromWei(auction.current_price).toFixed(3))
+            para0.appendChild(text0)
+            
+            link.appendChild(para0)
+            textdiv.appendChild(link)
+
+          }
+
           textdiv.appendChild(para1)
           textdiv.appendChild(para2)
 
