@@ -21,14 +21,15 @@ img {
 
 <body>
 <h1>KittyToolbox - Estimate your whole portfolio</h1>
-<p>This works only for those who contacted <a href="https://www.reddit.com/u/vicnaum">/u/vicnaum/</a> on reddit</p>
+<p>This works only for those who contacted <a href="https://www.reddit.com/u/vicnaum">/u/vicnaum/</a> on reddit (please specify how many cats you have)</p>
 <p>Test it with 0x8cfda561ad2838b1058af9479ae473a4e8dfd610 to see how it works</p>
+
+Owner address: <input style="width:30em" id="owner"/>
+<button onclick="getAllCats()">Estimate</button>
 
 <div id='console'></div>
 <div id='loader' style="width: 100%; height: 100px; display: none"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>
 <div style="margin-top: 20px">
-Owner address: <input style="width:30em" id="owner"/>
-<button onclick="getAllCats()">Estimate</button>
 </div>
 </body>
 
@@ -37,15 +38,21 @@ const node = document.getElementById("owner");
 node.addEventListener('keydown', function(event) {
     if (event.key === "Enter") {
       getAllCats()
-	node.value = ""
     }
 });
+
+function getReqParam(name){
+   if(name=(new RegExp('[?&]'+encodeURIComponent(name)+'=([^&]*)')).exec(location.search))
+      return decodeURIComponent(name[1]);
+}
 
 var allCats = []
 
 function getAllCats(owner) {
+  c.cls()
   showLoading()
   owner = document.getElementById("owner").value;
+  history.pushState({"owner": owner}, "Portfolio of "+owner, "/portfolio.html?owner="+owner);
   setTimeout(()=>{getPortfolio(owner, hideLoading)}, 100)
 }
 
@@ -187,6 +194,11 @@ var c = function() {
     });
 }();
 
+if (getReqParam('owner')) {
+  const node = document.getElementById("owner");
+  node.value = getReqParam('owner')
+  getAllCats()
+}
 </script>
 
 </html>
