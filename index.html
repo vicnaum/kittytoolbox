@@ -3,7 +3,6 @@
 
 <head>
 <title>Kitty-Toolbox - Rarity Calculation</title>
-<script src="bundle.js"></script>
 <script src="cattributes.js"></script>
 <style>
 img {
@@ -38,7 +37,7 @@ img {
 <div id='loader' style="width: 100%; height: 100px; display: none"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>
 <div style="margin-top: 20px">
 KittyId: <input id="kittyId"/>
-<button onclick="getRarity()">Get Rarity</button>
+<button onclick="search()">Get Rarity</button>
 <button onclick="c.cls()">Clear</button>
 </div>
 </body>
@@ -47,15 +46,26 @@ KittyId: <input id="kittyId"/>
 const node = document.getElementById("kittyId");
 node.addEventListener('keydown', function(event) {
     if (event.key === "Enter") {
-        getRarity()
+      search()
 	node.value = ""
     }
 });
 
+var searchCattributes
+var excludedCattributes
+var auctions
+var cats = []
+
+function search() {
+  document.getElementById("loader").style = "width: 100%; height: 100px; display: block;";
+  var kittyId = document.getElementById("kittyId").value;
+  setTimeout(()=>{getRarity(kittyId)}, 100)
+}
+
 /* console.log function from: http://www.kobashicomputing.com/send-your-console-output-to-the-result-pane-in-jsfiddle */
 var c = function() {
     return({
-        log: function(img, line1, line2) {
+        log: function(img, line1, line2, line3) {
           consoleDiv = document.getElementById('console');
           image = document.createElement('img');
           image.src = img
@@ -68,10 +78,14 @@ var c = function() {
           imgdiv.classList.add('inline');
           textdiv = document.createElement('div');
           textdiv.classList.add('inline');
+          pricediv = document.createElement('div');
+          pricediv.classList.add('price');
           para1 = document.createElement('p');
           para2 = document.createElement('p');
+          para3 = document.createElement('pre');
           text1 = document.createTextNode(line1);
           text2 = document.createTextNode(line2);
+          text3 = document.createTextNode(line3);
 
           imgdiv.appendChild(image);
           para1.appendChild(text1);
@@ -81,9 +95,13 @@ var c = function() {
           para2.appendChild(b);
           textdiv.appendChild(para1);
           textdiv.appendChild(para2);
+
+          para3.appendChild(text3);
+          pricediv.appendChild(para3);
           
           div.appendChild(imgdiv);
           div.appendChild(textdiv);
+          div.appendChild(pricediv);
 
           consoleDiv.appendChild(div);
         },
@@ -94,23 +112,57 @@ var c = function() {
     });
 }();
 
-var totalKitties = 133992
+var totalKitties = 134000
+var CSApi = 'https://api.cryptokitties.co/'
 
-function getRarity() {
-  var kittyId = document.getElementById("kittyId").value;
-  document.getElementById("loader").style = "width: 100%; height: 100px; display: block;";
-
-
-  myBundle.getKittyCS(kittyId, (error, cat) => {
-    c.log(cat.image_url, `#${kittyId} - ${cat.name}
-                       - GEN:${cat.generation}
-                       - Cooldown:${cat.status.cooldown_index}`,
-                       `RARITY: ${(calculateRarity(cat)*100*100000).toFixed(2)}% === ` + printCattributes(cat))
-    document.getElementById("loader").style = "width: 100%; height: 100px; display: none;";
-  })
+cooldowns = {
+  0: "fast",
+  1: "swift",
+  2: "swift",
+  3: "snappy",
+  4: "snappy",
+  5: "brisk",
+  6: "brisk",
+  7: "plodding",
+  8: "plodding",
+  9: "slow",
+  10: "slow",
+  11: "sluggish",
+  12: "sluggish",
+  13: "catatonic",
 }
 
-function printCattributes(cat) {
+function fromWei(amount) {
+  return (amount / 1000000000000000000)
+}
+
+function doRequest(url) {
+  var request = new XMLHttpRequest();
+  request.open('GET', url, false);  // `false` makes the request synchronous
+  request.send(null);
+  
+  if (request.status === 200) {
+    return(JSON.parse(request.responseText));
+  }
+}
+
+function getKittyCS(kittyId) {
+  var url = CSApi + "kitties/" + kittyId + "/"
+  return doRequest(url)
+}
+
+function getRarity(kittyId) {
+  var cat = getKittyCS(kittyId)
+  cats[kittyId] = cat
+
+  console.log(cat)
+  c.log(cat.image_url, `#${kittyId} - ${cat.name} - GEN:${cat.generation} - Cooldown:${cat.status.cooldown_index}`,
+                       `RARITY: ${(calculateRarity(cat)*100*100000).toFixed(2)}% === ` + printCattributes(cat),
+                       getPrice(cat))
+  document.getElementById("loader").style = "width: 100%; height: 100px; display: none;";
+}
+
+function sortCattributes(cat) {
   catrSorted = []
 
   if (cat.cattributes.length > 0) {
@@ -124,6 +176,16 @@ function printCattributes(cat) {
       return a.rarity-b.rarity
     })
     
+    return catrSorted
+  }
+  return null;
+}
+
+function printCattributes(cat) {
+
+  var catrSorted = sortCattributes(cat)  
+
+  if (catrSorted) {
     var str = ""
     catrSorted.forEach((cattribute) => {
       str += cattribute.description + ` (${cattribute.rarity}%) - `
@@ -141,6 +203,120 @@ function calculateRarity(cat) {
   })
   if (rarity == 1) return 0;
   return rarity
+}
+
+function getAuctions(gen, fancy, cattributes, cooldown) {
+  console.log(`\n\n\nGetting Auctions, gen:${gen}, fancy:${fancy}, cattributes:${cattributes}, cooldown:${cooldown}\n`)
+
+  let req = ""
+  if (gen || fancy || cattributes || cooldown) {
+    req += "&search="
+  }
+  if (gen) {
+    req += "gen:" + gen
+  }
+  if (gen && fancy) {
+    req += "+"
+  }
+  if (fancy) {
+    req += "type:fancy"
+  }
+  if ((gen || fancy) && cattributes) {
+    req += "+"
+  }
+  if (cattributes) {
+    req += cattributes
+  }
+  if ((gen || fancy || cattributes) && cooldown) {
+    req += "+"
+  }
+  if (cooldown) {
+    req += "cooldown:"+cooldown
+  }
+
+  var url = CSApi + "auctions?offset=0&limit=12&type=sale&status=open" + req + '&sorting=cheap&orderBy=current_price&orderDirection=asc'
+  return doRequest(url)
+}
+
+function getPrices(cat, sortedCattributes) {
+  var fancy
+  var gen
+  var cattributes
+  var cooldown
+
+  gen = Array.from({length: cat.generation+1}, (v, k) => k).join(",");
+  cooldown = Array.from({length: cat.status.cooldown_index+1}, (v, k) => cooldowns[k]).join(",");
+
+  if (cat.is_fancy) {
+    fancy = true
+    return [getAuctions(gen,fancy,cattributes,cooldown),["fancy"],[]]
+  } else {
+    auctionsTotal = 0
+    var searchCattributes = []
+    var excludedCattributes = []
+    
+    for (let i=0; i<sortedCattributes.length && sortedCattributes[i].rarity<=11; i++) {
+      searchCattributes.push(sortedCattributes[i].description)
+    }
+
+    var threshold = 2
+    while (auctionsTotal < threshold) {
+      console.log("Searching cattributes:", searchCattributes)
+      auctions = getAuctions(gen,fancy,searchCattributes.join("+"),cooldown)
+      auctionsTotal = auctions.total
+      console.log(`Found ${auctionsTotal} auctions`)
+      if (auctionsTotal < threshold) {
+        excludedCattributes.push(searchCattributes[searchCattributes.length-1])
+        searchCattributes.splice(-1,1)
+      }
+    }
+    return [auctions, searchCattributes, excludedCattributes]
+
+  }
+}
+
+function processAuctions(auctions, cat, searchCattributes, excludedCattributes) {
+
+  var prices = []
+  var str = "";
+
+  auctions.auctions.forEach(auction => {
+    var price = auction.current_price
+    prices.push(fromWei(price))
+  });
+
+  var median = prices[Math.floor(prices.length/2)]
+  var average = prices.reduce((a,b) => {return a+b}) / prices.length
+
+  str += `First ${prices.length} prices are from ${prices[0].toFixed(3)} ETH to ${prices[prices.length-1].toFixed(3)} ETH`
+  str += `\n(${prices.map((elem)=>{return elem.toFixed(3)}).join(' ETH, ')} ETH)`
+  str += `\n\nMedian: ${median.toFixed(3)} ETH, Average: ${average.toFixed(3)} ETH`
+
+  str += `\n\nTotal similar cats for sale: ` + auctions.total
+  str += `\nEstimation based on the following attributes: ` + searchCattributes.join(',')
+  str += `\nSearched generations ${cat.generation} and below and cooldown ${cooldowns[cat.status.cooldown_index]} or faster`
+
+  if (excludedCattributes.length > 0) {
+    str += `\n\n---\nWARNING! The following interesting attributes were excluded: ` + excludedCattributes.join(',')
+    str += `\n\nBecause there are no cats like yours on the market with the given gen & cooldown`
+    str += `\nconsider raising a price after better market investigation `
+  }
+
+  return str
+}
+
+function getPrice(cat) {
+  var searchCattributes
+  var excludedCattributes
+  var auctions
+  
+  ret = getPrices(cat, sortCattributes(cat))
+  console.log(ret)
+  auctions = ret[0]
+  searchCattributes = ret[1]
+  excludedCattributes = ret[2]
+  
+  return processAuctions(auctions, cat, searchCattributes, excludedCattributes)
 }
 
 </script>
