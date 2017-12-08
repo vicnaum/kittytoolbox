@@ -21,8 +21,8 @@ img {
 
 <body>
 <h1><a href="/kittytoolbox/">Kitty-Toolbox</a> - Estimate your whole portfolio</h1>
-<p>This works only for those who contacted <a href="https://www.reddit.com/u/vicnaum">/u/vicnaum/</a> on reddit (please specify how many cats you have)</p>
-<p>Test it with 0x8cfda561ad2838b1058af9479ae473a4e8dfd610 to see how it works</p>
+<p>Currently this works only for those who messaged in the comments here: <a href="https://www.reddit.com/r/CryptoKitties/comments/7igv1z/portfolio_estimator_from_kittytoolbox_estimate/"></a> (please specify how many cats you have)</p>
+<p>Test it with 0xa928ebb0467b4556a766028c50d0350586046cad to see how it works</p>
 
 Owner address: <input style="width:30em" id="owner"/>
 <button onclick="getAllCats()">Estimate</button>
@@ -51,7 +51,7 @@ var allCats = []
 function getAllCats(owner) {
   c.cls()
   showLoading()
-  owner = document.getElementById("owner").value;
+  owner = document.getElementById("owner").value.trim();
   history.pushState({"owner": owner}, "Portfolio of "+owner, "/kittytoolbox/portfolio.html?owner="+owner);
   setTimeout(()=>{getPortfolio(owner, hideLoading)}, 100)
 }
@@ -94,9 +94,10 @@ function getPortfolio(owner, callback) {
         displayCat(cat)
     });
   } else {
-      c.header(`No such owner in DB`)
-      c.log(`If you want your portfolio estimated to the DB please contact /u/vicnaum/ on Reddit for the details`)
-      c.log(`And now you can input an example address to see how it works: 0x8cfda561ad2838b1058af9479ae473a4e8dfd610`)
+      c.header(`No such address in DB`)
+      c.log(`If you want your portfolio added to the DB please contact /u/vicnaum/ on Reddit for the details`)
+      c.log(`To prevent high network load and DoS - manual approval is needed`)
+      c.log(`And now you can input an example address to see how it works: 0xa928ebb0467b4556a766028c50d0350586046cad`)
   }
 }
 
