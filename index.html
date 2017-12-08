@@ -27,7 +27,8 @@ img {
 <p>* "normalization" is approximate - so you can get values slightly over 100% from time to time - that's ok</p>
 <p>The tool doesn't account for genes rarity (randomness) yet.</p>
 <p>For example, if you breed a bird with a cat - you can get a simple common cat. But as it's father was a bird - it can give you a bird or rare traits in the next generations!</p>
-<p style="color:green"><b>Price Estimation is READY!</b></p>
+<p style="color:green"><b>Price Estimation is READY!</b> Please don't overuse it - CS servers are slow already...</p>
+<p>You can estimate all your kittens at once here: <a href="portfolio.html">Estimate Portfolio</a></p>
 
 <p style="font-size: 20px"><b>0%</b> is VERY RARE And Expensive. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  <b>100%</b> is Very Common and Cheap.</p>
 
@@ -73,7 +74,7 @@ function getRarity(kittyId, callback) {
 
   console.log(cat)
 
-  var rarity = (kittytoolbox.calculateRarity(cat)*100*100000).toFixed(2)
+  var rarity = (kittytoolbox.calculateRarity(cat)*100*100000).toFixed(5)
   var priceData = kittytoolbox.getPrice(cat)
 
   c.log(cat.image_url, `#${kittyId} - ${cat.name} - GEN:${cat.generation} - Cooldown:${cat.status.cooldown_index}`,

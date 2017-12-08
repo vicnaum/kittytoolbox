@@ -1,35 +1,8 @@
 (function(exports) {
 
-cattributes = {"oldlace":"4","wolfgrey":"14","gerbil":"25","cottoncandy":"45","violet":"129","wingtips":"358","mainecoon":"550","jaguar":"840","googly":"1012","cerulian":"1234","whixtensions":"1344","chartreux":"1603","fabulous":"2030","peach":"3647","bubblegum":"4656","dali":"4937","gold":"5074","otaku":"5453","scarlet":"6535","skyblue":"6557","bloodred":"6616","tigerpunk":"7698","limegreen":"7894","emeraldgreen":"8982","beard":"9108","spock":"9282","cloudwhite":"9473","laperm":"10278","calicool":"10365","barkbrown":"10519","chestnut":"11734","mauveover":"11997","tongue":"12964","cymric":"14268","saycheese":"18086","shadowgrey":"18209","coffee":"18287","salmon":"19517","royalpurple":"20011","mintgreen":"21437","chocolate":"21677","swampgreen":"21894","lemonade":"22303","topaz":"22443","sphynx":"22610","simple":"22700","orangesoda":"22916","aquamarine":"23312","munchkin":"23534","greymatter":"23704","raisedbrow":"24878","happygokitty":"26369","soserious":"26889","strawberry":"27280","ragamuffin":"27642","sizzurp":"28617","himalayan":"28719","pouty":"29385","crazy":"36071","thicccbrowz":"36625","luckystripe":"39657","kittencream":"54632","granitegrey":"55269","totesbasic":"61289"}
-   
-function getAll() {
-  mycatsCS.forEach((cat) => {
-    cat.rarity = calculateRarity(cat)
-  })
-  mycatsCS.sort((a,b) => {
-    return a.rarity - b.rarity
-  })
-  mycatsCS.slice(0,3).forEach((cat) => {
-    ret = getPrices(cat, sortCattributes(cat))
-    console.log(ret)
-    auctions = ret[0]
+var cattributes = {"oldlace":"4","wolfgrey":"14","gerbil":"25","cottoncandy":"45","violet":"129","wingtips":"358","mainecoon":"550","jaguar":"840","googly":"1012","cerulian":"1234","whixtensions":"1344","chartreux":"1603","fabulous":"2030","peach":"3647","bubblegum":"4656","dali":"4937","gold":"5074","otaku":"5453","scarlet":"6535","skyblue":"6557","bloodred":"6616","tigerpunk":"7698","limegreen":"7894","emeraldgreen":"8982","beard":"9108","spock":"9282","cloudwhite":"9473","laperm":"10278","calicool":"10365","barkbrown":"10519","chestnut":"11734","mauveover":"11997","tongue":"12964","cymric":"14268","saycheese":"18086","shadowgrey":"18209","coffee":"18287","salmon":"19517","royalpurple":"20011","mintgreen":"21437","chocolate":"21677","swampgreen":"21894","lemonade":"22303","topaz":"22443","sphynx":"22610","simple":"22700","orangesoda":"22916","aquamarine":"23312","munchkin":"23534","greymatter":"23704","raisedbrow":"24878","happygokitty":"26369","soserious":"26889","strawberry":"27280","ragamuffin":"27642","sizzurp":"28617","himalayan":"28719","pouty":"29385","crazy":"36071","thicccbrowz":"36625","luckystripe":"39657","kittencream":"54632","granitegrey":"55269","totesbasic":"61289"}
 
-    var prices = []
-    var str = "";
-
-    auctions.auctions.forEach(auction => {
-      var price = auction.current_price
-      prices.push(fromWei(price))
-    });
-
-    cat.prices = prices
-
-    var average = prices.reduce((a,b) => {return a+b}) / prices.length
-    console.log(cat.id, average.toFixed(3))
-  })
-}
-
-
+var logging = true
 
 var totalKitties = 134000
 var CSApi = 'https://api.cryptokitties.co/'
@@ -62,12 +35,18 @@ function doRequest(url) {
   
   if (request.status === 200) {
     return(JSON.parse(request.responseText));
+  } else {
+    return null
   }
 }
 
 function getKittyCS(kittyId) {
   var url = CSApi + "kitties/" + kittyId + "/"
-  return doRequest(url)
+  var res
+  while (!res) {
+    res = doRequest(url)
+  }
+  return res
 }
 
 
@@ -144,13 +123,18 @@ function formAuctionSearchParameters(gen, fancy, cattributes, cooldown){
     return req
 }
 
-function getAuctions(gen, fancy, cattributes, cooldown) {
-  console.log(`\n\n\nGetting Auctions, gen:${gen}, fancy:${fancy}, cattributes:${cattributes}, cooldown:${cooldown}\n`)
+function getAuction(gen, fancy, cattributes, cooldown) {
+  if (this.logging) console.log(`\n\n\nGetting Auctions, gen:${gen}, fancy:${fancy}, cattributes:${cattributes}, cooldown:${cooldown}\n`)
 
   var req = formAuctionSearchParameters(gen, fancy, cattributes, cooldown)
 
   var url = CSApi + "auctions?offset=0&limit=12&type=sale&status=open" + req + '&sorting=cheap&orderBy=current_price&orderDirection=asc'
-  return doRequest(url)
+  
+  var res
+  while (!res) {
+    res = doRequest(url)
+  }
+  return res
 }
 
 function getSearchLink(gen, fancy, cattributes, cooldown) {
@@ -158,7 +142,7 @@ function getSearchLink(gen, fancy, cattributes, cooldown) {
     return "https://www.cryptokitties.co/marketplace/sale?orderBy=current_price&orderDirection=asc&" + req + '&sorting=cheap'    
 }
 
-function getPrices(cat, sortedCattributes) {
+function getAuctions(cat, sortedCattributes) {
   var fancy
   var gen
   var cattributes
@@ -169,7 +153,7 @@ function getPrices(cat, sortedCattributes) {
 
   if (cat.is_fancy) {
     fancy = true
-    return [getAuctions(gen,fancy,cattributes,cooldown),["fancy"],[],getSearchLink(gen,fancy,cattributes,cooldown)]
+    return [getAuction(gen,fancy,cattributes,cooldown),["fancy"],[],getSearchLink(gen,fancy,cattributes,cooldown)]
   } else {
     auctionsTotal = 0
     var searchCattributes = []
@@ -181,10 +165,14 @@ function getPrices(cat, sortedCattributes) {
 
     var threshold = 2
     while (auctionsTotal < threshold) {
-      console.log("Searching cattributes:", searchCattributes)
-      auctions = getAuctions(gen,fancy,searchCattributes.join("+"),cooldown)
+      if (this.logging) console.log("Searching cattributes:", searchCattributes)
+      auctions = getAuction(gen,fancy,searchCattributes.join("+"),cooldown)
+      if (!auctions) {
+        console.log("Error retrieving auctions:")
+        console.log(auctions)
+      }
       auctionsTotal = auctions.total
-      console.log(`Found ${auctionsTotal} auctions`)
+      if (this.logging) console.log(`Found ${auctionsTotal} auctions`)
       if (auctionsTotal < threshold) {
         excludedCattributes.push(searchCattributes[searchCattributes.length-1])
         searchCattributes.splice(-1,1)
@@ -195,22 +183,28 @@ function getPrices(cat, sortedCattributes) {
   }
 }
 
-function processAuctions(auctions, cat, searchCattributes, excludedCattributes, searchLink) {
+function getPricesFromAuctions(auctions) {
+    var prices = []
+  
+    auctions.auctions.forEach(auction => {
+      var price = auction.current_price
+      prices.push(fromWei(price))
+    });
 
-  var prices = []
+    return prices
+}
+
+function processAuctions(auctions, cat, searchCattributes, excludedCattributes, searchLink) {
   var str = "";
 
-  auctions.auctions.forEach(auction => {
-    var price = auction.current_price
-    prices.push(fromWei(price))
-  });
+  prices = getPricesFromAuctions(auctions)
 
   var median = prices[Math.floor(prices.length/2)]
   var average = prices.reduce((a,b) => {return a+b}) / prices.length
 
   str += `First ${prices.length} prices are from ${prices[0].toFixed(3)} ETH to ${prices[prices.length-1].toFixed(3)} ETH`
   str += `\n(${prices.map((elem)=>{return elem.toFixed(3)}).join(' ETH, ')} ETH)`
-  str += `\n\nMedian: ${median.toFixed(3)} ETH, Average: ${average.toFixed(3)} ETH`
+  str += `\n\nMedian: ${median.toFixed(3)} ETH, Average: ${average.toFixed(3)} ETH, Cheapest: ${prices[0].toFixed(3)} ETH`
 
   str += `\n\nTotal similar cats for sale: ` + auctions.total
   str += `\nEstimation based on the following attributes: ` + searchCattributes.join(',')
@@ -230,7 +224,7 @@ function processAuctions(auctions, cat, searchCattributes, excludedCattributes, 
 }
 
 function getPrice(cat) {
-  ret = getPrices(cat, sortCattributes(cat))
+  ret = getAuctions(cat, sortCattributes(cat))
   console.log(ret)
 
   var auctions = ret[0]
@@ -241,6 +235,11 @@ function getPrice(cat) {
   return processAuctions(auctions, cat, searchCattributes, excludedCattributes, searchLink)
 }
 
+function getPortfolio(owner) {
+  url = 'http://107.191.100.38:3333/getPortfolio?owner='+owner;
+//  url = 'http://localhost:3333/getPortfolio?owner='+owner;
+  return doRequest(url)
+}
 
 var colors = {"chestnut": "#efe1da",
               "mintgreen": "#cdf5d4",
@@ -256,5 +255,14 @@ exports.getKittyCS = getKittyCS
 exports.calculateRarity = calculateRarity
 exports.printCattributes = printCattributes
 exports.colors = colors
+exports.doRequest = doRequest
+exports.getPricesFromAuctions = getPricesFromAuctions
+exports.sortCattributes = sortCattributes
+exports.getAuctions = getAuctions
+exports.fromWei = fromWei
+exports.logging = logging
+exports.CSApi = CSApi
+exports.getPortfolio = getPortfolio
+exports.processAuctions = processAuctions
 
 })(typeof exports === 'undefined'? this['kittytoolbox']={}: exports);
