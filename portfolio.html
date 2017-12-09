@@ -4,28 +4,40 @@
 <head>
 <title>Kitty-Toolbox - Estimate Portfolio</title>
 <script src="kittytoolbox.js"></script>
+<script src="kittyAbi.js"></script>
+<script src="saleClockAuctionAbi.js"></script>
+
 <style>
 img {
   vertical-align: middle;
   }
 .row {
   border: 1px solid gray;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 .inline {
   display: inline-block;
   vertical-align: middle;
   margin-right: 20px;
 }
+a {
+  color: rgb(3, 104, 145);
+}
 </style>
 </head>
 
 <body>
-<h1><a href="/kittytoolbox/">Kitty-Toolbox</a> - Estimate your whole portfolio</h1>
+<h1>Kitty-Toolbox - Portfolio Estimation</h1>
+<p><a href="/kittytoolbox/">Rarity Calculator</a> &nbsp;&nbsp;&nbsp;&nbsp; Estimate Portfolio Tool &nbsp;&nbsp;&nbsp;&nbsp; Your MetaMask Address: <span style="font-weight: bold" id="metamaskSpan">...</span></p>
 <p>Currently this works only for those who messaged in the comments here: <a href="https://www.reddit.com/r/CryptoKitties/comments/7igv1z/portfolio_estimator_from_kittytoolbox_estimate/"></a> (please specify how many cats you have)</p>
-<p>Test it with 0xa928ebb0467b4556a766028c50d0350586046cad to see how it works</p>
+<p>Test it with <a href="/kittytoolbox/portfolio.html?owner=0xa928ebb0467b4556a766028c50d0350586046cad">0xa928ebb0467b4556a766028c50d0350586046cad</a> to see how it works</p>
 
-Owner address: <input style="width:30em" id="owner"/>
-<button onclick="getAllCats()">Estimate</button>
+Owner address: <input style="width:30em" id="ownerInput"/>
+<button onclick="getAllCats()">Estimate</button><button onclick="useMetamask()">Use MetaMask Address</button>
+<br>Filters:<br>
+All:<input type="radio" name="sellingFilter" value="sellingAll" id="sellingAll" checked> | Selling:<input type="radio" name="sellingFilter" value="sellingTrue" id="sellingTrue"> | Not Selling:<input type="radio" name="sellingFilter" value="sellingFalse" id="sellingFalse">
+<br><button onclick="applyFilters()">Apply</button>
 
 <div id='console'></div>
 <div id='loader' style="width: 100%; height: 100px; display: none"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>
@@ -34,25 +46,305 @@ Owner address: <input style="width:30em" id="owner"/>
 </body>
 
 <script>
-const node = document.getElementById("owner");
+const node = document.getElementById("ownerInput");
 node.addEventListener('keydown', function(event) {
     if (event.key === "Enter") {
       getAllCats()
     }
 });
 
+var user
+var kittyContract
+var kittyAddress = '0x06012c8cf97bead5deae237070f9587f8e7a266d'
+var saleClockAuctionAddress = '0xb1690C08E213a35Ed9bAb7B318DE14420FB57d8C'
+
+function applyFilters() {
+  let sellingFilterValue = document.querySelector('input[name="sellingFilter"]:checked').value;
+  if (sellingFilterValue == 'sellingAll') {
+    delete filters['selling']
+  } else {
+    if (sellingFilterValue == 'sellingTrue') {
+      filters['selling'] = 'true'
+    } else {
+      filters['selling'] = 'false'
+    }
+  }
+  getAllCats()
+}
+
+var filters = {}
+
+function getFilters() {
+  if (getReqParam('kittyId')) {
+    filters['kittyId'] = getReqParam('kittyId')
+  }
+  if (getReqParam('selling')) {
+    filters['selling'] = getReqParam('selling')
+    if (getReqParam('selling') === 'true') {
+      document.getElementById("sellingTrue").checked = true
+    } else {
+      document.getElementById("sellingFalse").checked = true
+    }
+  }
+}
+
+function init() {
+  updateMetamaskAddress();
+
+  getFilters()
+
+  if (getReqParam('owner')) {
+    const node = document.getElementById("ownerInput");
+    owner = getReqParam('owner')
+    node.value = owner
+    setTimeout(getAllCats, 1000)
+  } else {
+    if (user) {
+      const node = document.getElementById("ownerInput");
+      owner = user
+      node.value = owner
+      setTimeout(() => getAllCats(owner), 1000)
+    }
+  }
+
+  kittyContract = web3.eth.contract(kittyAbi).at(kittyAddress);
+  saleContract = web3.eth.contract(saleClockAuctionAbi).at(saleClockAuctionAddress);
+}
+
+function useMetamask() {
+  user = web3.eth.accounts[0];
+  const node = document.getElementById("ownerInput")
+  node.value = user
+  owner = user
+  getAllCats(owner)
+}
+
+function replaceElement(obj, str) {
+  if(obj.outerHTML) { //if outerHTML is supported
+    obj.outerHTML=str; ///it's simple replacement of whole element with contents of str var
+  } else { //if outerHTML is not supported, there is a weird but crossbrowsered trick
+    var tmpObj=document.createElement("div");
+    tmpObj.innerHTML='<!--THIS DATA SHOULD BE REPLACED-->';
+    ObjParent=obj.parentNode; //Okey, element should be parented
+    ObjParent.replaceChild(tmpObj,obj); //here we placing our temporary data instead of our target, so we can find it then and replace it into whatever we want to replace to
+    ObjParent.innerHTML=ObjParent.innerHTML.replace('<div><!--THIS DATA SHOULD BE REPLACED--></div>',str);
+  }
+}
+
+function sell(kittyId) {
+  let loader = `<div id='loader${kittyId}' style="width: 100%; height: 100px; display: inline; "><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>`
+  obj = document.getElementById("sell"+kittyId)
+  replaceElement(obj, loader)
+  
+  saleContract.getCurrentPrice(kittyId, (error,response) => checkCatForSale(kittyId, response, error))
+}
+
+function cancel(kittyId) {
+  let loader = `<div id='cancelLoader${kittyId}' style="width: 100%; height: 100px; display: inline; "><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>`
+  obj = document.getElementById("cancel"+kittyId)
+  replaceElement(obj, loader)
+  
+  updatePrice(kittyId, (response)=>doCancel(kittyId, response))
+}
+
+function doCancel(kittyId, price) {
+  if (price) {
+    saleContract.cancelAuction(kittyId, (error,response) => {finishCancel(kittyId, error, response)})
+  } else {
+    obj = document.getElementById("cancelLoader"+kittyId)
+    replaceElement(obj, '')
+  }
+}
+
+function finishCancel(kittyId, error, tx) {
+  obj = document.getElementById("cancelLoader"+kittyId)
+  if (error) {
+    replaceElement(obj, renderCancelButton(kittyId).outerHTML+`<br><p style="color:red;  display: inline-block">Error sending tx: ${error}</b></p>`)
+  } else {
+    replaceElement(obj, renderCancelButton(kittyId).outerHTML+`<p style="color:green; display: inline-block"><b>Cancel tx sent: <a href="https://etherscan.io/tx/${tx}">${tx}</a></b></p>`)
+  }
+}
+
+function buy(kittyId) {
+  let loader2 = `<div id='buyLoader${kittyId}' style="width: 200px; height: 40px; display: inline-block; text-align: center"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: auto; margin-right: auto; vertical-align: middle"></div>`
+  obj = document.getElementById("buy"+kittyId)
+  replaceElement(obj, loader2)
+
+  updatePrice(kittyId, (response)=>getAuction(kittyId, response))
+}
+
+function getAuction(kittyId, price) {
+  if (price) {
+    saleContract.getAuction(kittyId, (error,response) => {processAuction(kittyId, response, price)})
+  } else {
+    obj = document.getElementById("buyLoader"+kittyId)
+    replaceElement(obj, '')
+  }
+}
+
+
+function processAuction(kittyId, response, price) {
+  if (response[1].toNumber() > 0) {
+    let startingPrice = response[1]
+    let endingPrice = response[2]
+    let duration = response[3]
+    if (startingPrice.lessThanOrEqualTo(endingPrice)) {
+      saleContract.bid(kittyId, {value: price}, (error, response)=>finishBuy(kittyId, error, response))
+    } else {
+      let difference = endingPrice.minus(startingPrice)
+      let margin = difference.dividedToIntegerBy(duration / (3600))
+      saleContract.bid(kittyId, {value: price.plus(margin)}, (error, response)=>finishBuy(kittyId, error, response))
+    }
+  }
+}
+
+function finishBuy(kittyId, error, tx) {
+  obj = document.getElementById("buyLoader"+kittyId)
+  if (error) {
+    replaceElement(obj, renderBuyButton(kittyId).outerHTML+`<br><p style="color:red;  display: inline-block">Error sending tx: ${error}</b></p>`)
+  } else {
+    replaceElement(obj, renderBuyButton(kittyId).outerHTML+`<p style="color:green; display: inline-block"><b>Sale tx sent: <a href="https://etherscan.io/tx/${tx}">${tx}</a></b></p>`)
+  }
+}
+
+function updatePrice(kittyId, callback) {
+  let loader = `<div id='loader${kittyId}' style="width: 200px; height: 40px; display: inline-block; text-align: center"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: auto; margin-right: auto; vertical-align: middle"></div>`
+  obj = document.getElementById("priceOf"+kittyId)
+  replaceElement(obj, loader)
+  
+  saleContract.getCurrentPrice(kittyId, (error,response) => updatePriceFinish(kittyId, response, error, callback))
+}
+
+var defaultHours = 6
+var defaultPriceFrom = 0.1
+var defaultPriceTo = 0
+
+function updatePriceFinish(kittyId, price, error, callback) {
+  if (!error) {
+    if (price.toNumber() > 0) {
+      obj = document.getElementById("loader"+kittyId)
+      replaceElement(obj, renderSalePrice(web3.fromWei(price).toFixed(3), kittyId).outerHTML)
+      if (callback) callback(price)
+    } else {
+      obj = document.getElementById("loader"+kittyId)
+      replaceElement(obj, `<p style="color:red; display: inline-block"><b>The cat is no longer on sale</b></p>`)
+      if (callback) callback(null)
+    }
+  }
+}
+
+function renderSalePrice(price, kittyId) {
+  link = document.createElement('a')
+  link.id = "priceOf"+kittyId
+  link.style.display = "inline-block"
+  link.style.color = "red"
+  link.href = ('https://www.cryptokitties.co/kitty/'+kittyId)
+
+  para0 = document.createElement('h2')
+  text0 = document.createTextNode('SELLING AT: ' + price)
+
+  para0.appendChild(text0)
+  link.appendChild(para0)
+
+  return link
+}
+
+function renderBuyButton(kittyId) {
+  buyButton = document.createElement('button')
+  buyButton.innerHTML = 'Buy'
+  buyButton.style.width = '100px'
+  buyButton.style.height = '30px'
+  buyButton.style['margin-left'] = '20px'
+  buyButton.addEventListener('click',() => {buy(kittyId)}, false)
+  buyButton.id = 'buy'+kittyId
+
+  return buyButton
+}
+
+function renderCancelButton(kittyId) {
+  cancelButton = document.createElement('button')
+  cancelButton.innerHTML = 'Cancel'
+  cancelButton.style.width = '100px'
+  cancelButton.style.height = '30px'
+  cancelButton.style['margin-left'] = '20px'
+  cancelButton.addEventListener('click',() => {cancel(kittyId)}, false)
+  cancelButton.id = 'cancel'+kittyId
+
+  return cancelButton
+}
+
+function checkCatForSale(kittyId, response, error) {
+  if (!error) {
+    if (response.toNumber() > 0) {
+      obj = document.getElementById("loader"+kittyId)
+      replaceElement(obj, `<p style="color:red"><b>The cat is already on sale for: ${web3.fromWei(response).toFixed(3)}</b></p>`)
+    } else {
+      obj = document.getElementById("loader"+kittyId)
+      replaceElement(obj, sellForm(kittyId))
+    }
+  }
+}
+
+function sellForm(kittyId) {
+  var str = ""
+  str += `<div id="saleForm${kittyId}">`
+  str += `Price: <input id="priceFrom${kittyId}" value="${defaultPriceFrom}" style="width:6em">-><input id="priceTo${kittyId}" value="${defaultPriceTo}" style="width:6em"><br/>`
+  str += `Duration (hours): <input id="duration${kittyId}" value="${defaultHours}" style="width:6em"><button onclick="confirmSell(${kittyId})">SELL</button></div>`
+  return str
+}
+
+function confirmSell(kittyId) {
+  let priceFrom = document.getElementById("priceFrom"+kittyId).value
+  let priceTo = document.getElementById("priceTo"+kittyId).value
+  let duration = document.getElementById("duration"+kittyId).value
+
+  var confirmation = `You're selling ${kittyId} for ${web3.fromWei(web3.toWei(priceFrom))}->${web3.fromWei(web3.toWei(priceTo))}ETH during ${(Math.floor(duration*60*60)/3600).toFixed(0)} hours`
+
+  if (confirm(confirmation) == true) {
+    sellTransaction(kittyId, priceFrom, priceTo, duration)
+  }
+}
+
+function sellTransaction(kittyId, priceFrom, priceTo, duration) {
+  kittyContract.createSaleAuction(kittyId, web3.toWei(priceFrom), web3.toWei(priceTo), Math.floor(duration*60*60), (error, response) => transactionFinished(error, response, kittyId))
+}
+
+function transactionFinished(error, tx, kittyId) {
+  obj = document.getElementById("saleForm"+kittyId)
+  if (error) {
+    replaceElement(obj, obj.innerHTML+`<br><p style="color:red">Error sending tx: ${error}</b></p>`)
+  } else {
+    replaceElement(obj, `<p style="color:green"><b>Sale tx sent: <a href="https://etherscan.io/tx/${tx}">${tx}</a></b></p>`)
+  }
+}
+
 function getReqParam(name){
    if(name=(new RegExp('[?&]'+encodeURIComponent(name)+'=([^&]*)')).exec(location.search))
       return decodeURIComponent(name[1]);
 }
 
+function ownersCats() {
+  return (owner == user)
+}
+
 var allCats = []
 
+
 function getAllCats(owner) {
+  console.log(user)
   c.cls()
   showLoading()
-  owner = document.getElementById("owner").value.trim();
-  history.pushState({"owner": owner}, "Portfolio of "+owner, "/kittytoolbox/portfolio.html?owner="+owner);
+  if (owner) {
+  } else {
+    owner = document.getElementById("ownerInput").value.trim();
+  }
+  
+  filtersStr = ""
+  if (Object.keys(filters).length>0) filtersStr = "&"
+  Object.keys(filters).forEach((key) => {
+    filtersStr += `${key}=${filters[key]}`
+  })
+  history.pushState({"owner": owner}, "Portfolio of "+owner, "/kittytoolbox/portfolio.html?owner="+owner+filtersStr);
   setTimeout(()=>{getPortfolio(owner, hideLoading)}, 100)
 }
 
@@ -69,10 +361,20 @@ function getPortfolio(owner, callback) {
   callback()
 
   if (cats.length > 0) {
+
+    let displayCats = []
+
+    cats.forEach(cat => {
+        let show = true;
+        if ("kittyId" in filters && filters.kittyId != cat.id) show = false
+        if ("selling" in filters && (filters.selling === 'true') != (Object.keys(cat.auction).length > 0)) show = false
+        if (show) displayCats.push(cat)
+    });
+
     var optimisticTotal = 0
     var cheapestTotal = 0
 
-    cats.forEach(cat => {
+    displayCats.forEach(cat => {
         prices = kittytoolbox.getPricesFromAuctions(cat.auctions)
         var median = prices[Math.floor(prices.length/2)]
         var average = prices.reduce((a,b) => {return a+b}) / prices.length
@@ -83,15 +385,14 @@ function getPortfolio(owner, callback) {
         cheapestTotal += prices[0]
     });
 
-    cats.sort((a,b) => {
+    displayCats.sort((a,b) => {
         return Math.min(b.auctions.average, b.auctions.median) - Math.min(a.auctions.average, a.auctions.median)
     })
 
-    displayTotals(cats.length, optimisticTotal.toFixed(2), cheapestTotal.toFixed(2))
+    displayTotals(displayCats.length, optimisticTotal.toFixed(2), cheapestTotal.toFixed(2))
 
-    cats.forEach(cat => {
-        console.log(cat.auctions.average)
-        displayCat(cat)
+    displayCats.forEach(cat => {
+      displayCat(cat)
     });
   } else {
       c.header(`No such address in DB`)
@@ -102,7 +403,11 @@ function getPortfolio(owner, callback) {
 }
 
 function displayTotals(totalCats, optimisticTotal, cheapestTotal) {
+  if (totalCats == cats.length) {
     c.header(`Total cats: `+totalCats)
+  } else {
+    c.header(`Displaying cats: ${totalCats} (of ${cats.length} total)`)
+  }
     c.header(`Optimistic total: ${optimisticTotal} ETH`)
     c.header(`Cheapest total: ${cheapestTotal} ETH`)
     c.log(`Sorted from expensive to cheapest`)
@@ -177,19 +482,40 @@ var c = function() {
           b.appendChild(text2)
           para2.appendChild(b)
 
-          console.log(auction)
+          console.log(`metamask = ${user}, cats owner = ${owner}`)
           if (Object.keys(auction).length > 0) {
-            link = document.createElement('a')
-            link.style.color = "red"
-            link.href = ('https://www.cryptokitties.co/kitty/'+kittyId)
 
-            para0 = document.createElement('h2')
-            text0 = document.createTextNode('SELLING AT: ' + kittytoolbox.fromWei(auction.current_price).toFixed(3))
-            para0.appendChild(text0)
-            
-            link.appendChild(para0)
+            link = renderSalePrice(kittytoolbox.fromWei(auction.current_price).toFixed(3), kittyId)
             textdiv.appendChild(link)
 
+            updateButton = document.createElement('button')
+            updateButton.innerHTML = 'Reload Price'
+            updateButton.style.width = '100px'
+            updateButton.style.height = '30px'
+            updateButton.style['margin-left'] = '20px'
+            updateButton.addEventListener('click',() => {updatePrice(kittyId)}, false)
+            updateButton.id = 'updatePrice'+kittyId
+            textdiv.appendChild(updateButton)
+
+            if (!ownersCats()) {
+              buyButton = renderBuyButton(kittyId)
+              textdiv.appendChild(buyButton)
+            } else {
+              cancelButton = renderCancelButton(kittyId)
+              textdiv.appendChild(cancelButton)
+            }
+
+          } else {
+            if (ownersCats()) {
+              sellButton = document.createElement('button')
+              sellButton.innerHTML = 'Sell'
+              sellButton.style.width = '200px'
+              sellButton.style.height = '50px'
+              sellButton.addEventListener('click',() => {sell(kittyId)}, false)
+              sellButton.id = 'sell'+kittyId
+
+              textdiv.appendChild(sellButton)
+            }
           }
 
           textdiv.appendChild(para1)
@@ -213,11 +539,37 @@ var c = function() {
     });
 }();
 
-if (getReqParam('owner')) {
-  const node = document.getElementById("owner");
-  node.value = getReqParam('owner')
-  getAllCats()
+
+window.addEventListener('load', function() {
+
+  // Checking if Web3 has been injected by the browser (Mist/MetaMask)
+  if (typeof web3 !== 'undefined') {
+    // Use Mist/MetaMask's provider
+    window.web3 = new Web3(web3.currentProvider);
+  } else {
+    console.log('No web3? You should consider trying MetaMask!')
+    // fallback - use your fallback strategy (local node / hosted node + in-dapp id mgmt / fail)
+    window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+  }
+
+  // Now you can start your app & access web3 freely:
+  
+  setTimeout(init, 1000)
+
+})
+
+function updateMetamaskAddress() {
+  user = web3.eth.accounts[0];
+  let obj = document.getElementById("metamaskSpan")
+  obj.innerText = user
+  console.log(user)
 }
+
+setInterval(function() {
+          if (web3.eth.accounts[0] !== user) {
+            updateMetamaskAddress()
+            }
+          }, 100);
 </script>
 
 </html>

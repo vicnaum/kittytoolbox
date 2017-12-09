@@ -142,7 +142,7 @@ function getSearchLink(gen, fancy, cattributes, cooldown) {
     return "https://www.cryptokitties.co/marketplace/sale?orderBy=current_price&orderDirection=asc&" + req + '&sorting=cheap'    
 }
 
-function getAuctions(cat, sortedCattributes) {
+function getAuctions(cat, sortedCattributes, threshold) {
   var fancy
   var gen
   var cattributes
@@ -163,7 +163,6 @@ function getAuctions(cat, sortedCattributes) {
       searchCattributes.push(sortedCattributes[i].description)
     }
 
-    var threshold = 2
     while (auctionsTotal < threshold) {
       if (this.logging) console.log("Searching cattributes:", searchCattributes)
       auctions = getAuction(gen,fancy,searchCattributes.join("+"),cooldown)
@@ -223,8 +222,8 @@ function processAuctions(auctions, cat, searchCattributes, excludedCattributes, 
   return [str, searchLink]
 }
 
-function getPrice(cat) {
-  ret = getAuctions(cat, sortCattributes(cat))
+function getPrice(cat, threshold) {
+  ret = getAuctions(cat, sortCattributes(cat), threshold)
   console.log(ret)
 
   var auctions = ret[0]
