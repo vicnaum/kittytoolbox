@@ -141,7 +141,7 @@ function checkPaymentScreen(owner, res) {
 }
 
 function donate(donation) {
-  let donationAddress = `0x79635b386B9bd6636Cd701879C32E6dd181C853F`;
+  let donationAddress = `0x1CC506b64bcB8CC1FE722f05b197c0c52688236F`;
   let button = document.getElementById("donateButton")
   button.style.display = "none"
   let loader = document.getElementById("donationLoader")
@@ -476,6 +476,7 @@ function getPortfolio(owner, callback) {
 
   if (res.hasDB) {
     cats = res.cats
+    console.log(res)
     
     let displayCats = []
 
