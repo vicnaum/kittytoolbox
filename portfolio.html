@@ -30,8 +30,8 @@ a {
 <body>
 <h1>Kitty-Toolbox - Portfolio Estimation</h1>
 <p><a href="/kittytoolbox/">Rarity Calculator</a> &nbsp;&nbsp;&nbsp;&nbsp; Estimate Portfolio Tool &nbsp;&nbsp;&nbsp;&nbsp; Your MetaMask Address: <span style="font-weight: bold" id="metamaskSpan">...</span> (Balance: <span id="balanceSpan" style="font-size:32px; font-weight: bold">...</span> ETH)</p>
-<p>Currently this works only for those who messaged in the comments here: <a href="https://www.reddit.com/r/CryptoKitties/comments/7igv1z/portfolio_estimator_from_kittytoolbox_estimate/"></a> (please specify how many cats you have)</p>
-<p>Test it with <a href="/kittytoolbox/portfolio.html?owner=0xa928ebb0467b4556a766028c50d0350586046cad">0xa928ebb0467b4556a766028c50d0350586046cad</a> to see how it works</p>
+<!--p>Currently this works only for those who messaged in the comments here: <a href="https://www.reddit.com/r/CryptoKitties/comments/7igv1z/portfolio_estimator_from_kittytoolbox_estimate/">reddit topic</a> (please specify how many cats you have)</p-->
+<!--p>Test it with <a href="/kittytoolbox/portfolio.html?owner=0xa928ebb0467b4556a766028c50d0350586046cad">0xa928ebb0467b4556a766028c50d0350586046cad</a> to see how it works</p-->
 
 Owner address: <input style="width:30em" id="ownerInput"/>
 <button onclick="getAllCats()">Estimate</button> &nbsp;&nbsp; <button onclick="useMetamask()">Use MetaMask Address</button> (&lt;-- use this button if this is your portfolio, but you don't see "sell" and "cancel" buttons)
@@ -50,6 +50,9 @@ All:<input type="radio" name="sellingFilter" value="sellingAll" id="sellingAll" 
 </body>
 
 <script>
+
+var owner
+
 const node = document.getElementById("ownerInput");
 node.addEventListener('keydown', function(event) {
     if (event.key === "Enter") {
@@ -92,9 +95,18 @@ function getFilters() {
   }
 }
 
+
 function init() {
-  updateMetamaskAddress();
-  web3.eth.getBalance(user, (error, response) => updateMetamaskBalance(response))
+
+  try {
+    updateMetamaskAddress();
+    web3.eth.getBalance(user, (error, response) => updateMetamaskBalance(response))
+    kittyContract = web3.eth.contract(kittyAbi).at(kittyAddress);
+    saleContract = web3.eth.contract(saleClockAuctionAbi).at(saleClockAuctionAddress);
+  } catch(err) {
+    console.log(err)
+  }
+
 
   getFilters()
 
@@ -112,8 +124,6 @@ function init() {
     }
   }
 
-  kittyContract = web3.eth.contract(kittyAbi).at(kittyAddress);
-  saleContract = web3.eth.contract(saleClockAuctionAbi).at(saleClockAuctionAddress);
 }
 
 function useMetamask() {
@@ -570,15 +580,25 @@ window.addEventListener('load', function() {
   if (typeof web3 !== 'undefined') {
     // Use Mist/MetaMask's provider
     window.web3 = new Web3(web3.currentProvider);
+    setInterval(function() {
+          if (web3.eth.accounts[0] !== user) {
+            updateMetamaskAddress()
+          }
+    }, 1000);
+
+    setInterval(function() {
+      web3.eth.getBalance(user, (error, response) => updateMetamaskBalance(response))
+    }, 10000);
+
   } else {
     console.log('No web3? You should consider trying MetaMask!')
     // fallback - use your fallback strategy (local node / hosted node + in-dapp id mgmt / fail)
-    window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+    //window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
   }
 
   // Now you can start your app & access web3 freely:
-  
   setTimeout(init, 1000)
+
 
 })
 
@@ -593,15 +613,6 @@ function updateMetamaskBalance(balance) {
   obj.innerText = web3.fromWei(balance).toFixed(3)
 }
 
-setInterval(function() {
-          if (web3.eth.accounts[0] !== user) {
-            updateMetamaskAddress()
-          }
-}, 1000);
-
-setInterval(function() {
-  web3.eth.getBalance(user, (error, response) => updateMetamaskBalance(response))
-}, 10000);
 
 </script>
 
