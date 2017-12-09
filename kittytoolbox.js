@@ -36,7 +36,8 @@ function doRequest(url) {
   if (request.status === 200) {
     return(JSON.parse(request.responseText));
   } else {
-    return('Error: '+request.status)
+    console.log('Error: '+request.status)
+    return null //('Error: '+request.status)
   }
 }
 
@@ -169,6 +170,10 @@ function getAuctions(cat, sortedCattributes, threshold) {
       if (!auctions) {
         console.log("Error retrieving auctions:")
         console.log(auctions)
+      }
+      if (!auctions.auctions) {
+        console.log("Error retrieving auctions:")
+        console.log(auctions.auctions)
       }
       auctionsTotal = auctions.total
       if (this.logging) console.log(`Found ${auctionsTotal} auctions`)
