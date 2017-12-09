@@ -29,15 +29,19 @@ a {
 
 <body>
 <h1>Kitty-Toolbox - Portfolio Estimation</h1>
-<p><a href="/kittytoolbox/">Rarity Calculator</a> &nbsp;&nbsp;&nbsp;&nbsp; Estimate Portfolio Tool &nbsp;&nbsp;&nbsp;&nbsp; Your MetaMask Address: <span style="font-weight: bold" id="metamaskSpan">...</span></p>
+<p><a href="/kittytoolbox/">Rarity Calculator</a> &nbsp;&nbsp;&nbsp;&nbsp; Estimate Portfolio Tool &nbsp;&nbsp;&nbsp;&nbsp; Your MetaMask Address: <span style="font-weight: bold" id="metamaskSpan">...</span> (Balance: <span id="balanceSpan" style="font-size:32px; font-weight: bold">...</span> ETH)</p>
 <p>Currently this works only for those who messaged in the comments here: <a href="https://www.reddit.com/r/CryptoKitties/comments/7igv1z/portfolio_estimator_from_kittytoolbox_estimate/"></a> (please specify how many cats you have)</p>
 <p>Test it with <a href="/kittytoolbox/portfolio.html?owner=0xa928ebb0467b4556a766028c50d0350586046cad">0xa928ebb0467b4556a766028c50d0350586046cad</a> to see how it works</p>
 
 Owner address: <input style="width:30em" id="ownerInput"/>
-<button onclick="getAllCats()">Estimate</button><button onclick="useMetamask()">Use MetaMask Address</button>
-<br>Filters:<br>
+<button onclick="getAllCats()">Estimate</button> &nbsp;&nbsp; <button onclick="useMetamask()">Use MetaMask Address</button>
+<br><br><b>Filters:</b>
 All:<input type="radio" name="sellingFilter" value="sellingAll" id="sellingAll" checked> | Selling:<input type="radio" name="sellingFilter" value="sellingTrue" id="sellingTrue"> | Not Selling:<input type="radio" name="sellingFilter" value="sellingFalse" id="sellingFalse">
-<br><button onclick="applyFilters()">Apply</button>
+<button onclick="applyFilters()">Apply</button>
+ &nbsp;&nbsp;
+ &nbsp;&nbsp; <b>Sale Price:</b> <input id="defaultSaleStartInput" style="width: 3em" value="0.1"> <span style="font-size:20px">➜</span> <input id="defaultSaleEndInput" style="width: 3em" value="0"> ETH
+ &nbsp;&nbsp; <b>Sale Time:</b> <input id="defaultSaleHoursInput" style="width: 3em" value="12"> (hours)
+ &nbsp;&nbsp; <b>Defaults: Gas</b> <input id="defaultGasInput" style="width: 3em" value="45"> Gwei (<a href="https://ethgasstation.info/">check best gas</a>)
 
 <div id='console'></div>
 <div id='loader' style="width: 100%; height: 100px; display: none"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>
@@ -90,6 +94,7 @@ function getFilters() {
 
 function init() {
   updateMetamaskAddress();
+  web3.eth.getBalance(user, (error, response) => updateMetamaskBalance(response))
 
   getFilters()
 
@@ -119,15 +124,19 @@ function useMetamask() {
   getAllCats(owner)
 }
 
-function replaceElement(obj, str) {
-  if(obj.outerHTML) { //if outerHTML is supported
-    obj.outerHTML=str; ///it's simple replacement of whole element with contents of str var
-  } else { //if outerHTML is not supported, there is a weird but crossbrowsered trick
-    var tmpObj=document.createElement("div");
-    tmpObj.innerHTML='<!--THIS DATA SHOULD BE REPLACED-->';
-    ObjParent=obj.parentNode; //Okey, element should be parented
-    ObjParent.replaceChild(tmpObj,obj); //here we placing our temporary data instead of our target, so we can find it then and replace it into whatever we want to replace to
-    ObjParent.innerHTML=ObjParent.innerHTML.replace('<div><!--THIS DATA SHOULD BE REPLACED--></div>',str);
+function replaceElement(obj, str, newObj) {
+  ObjParent=obj.parentNode;
+  if (newObj) {
+    ObjParent.replaceChild(newObj, obj);
+    if (str) {
+      var tmpObj=document.createElement("span");
+      tmpObj.innerHTML=str;
+      ObjParent.appendChild(tmpObj);
+    }
+  } else {
+    if(obj.outerHTML) { //if outerHTML is supported
+      obj.outerHTML=str; ///it's simple replacement of whole element with contents of str var
+    }
   }
 }
 
@@ -148,8 +157,9 @@ function cancel(kittyId) {
 }
 
 function doCancel(kittyId, price) {
+  let gasPrice = document.getElementById("defaultGasInput").value
   if (price) {
-    saleContract.cancelAuction(kittyId, (error,response) => {finishCancel(kittyId, error, response)})
+    saleContract.cancelAuction(kittyId, {gasPrice: web3.toWei(gasPrice, "gwei")}, (error,response) => {finishCancel(kittyId, error, response)})
   } else {
     obj = document.getElementById("cancelLoader"+kittyId)
     replaceElement(obj, '')
@@ -159,9 +169,9 @@ function doCancel(kittyId, price) {
 function finishCancel(kittyId, error, tx) {
   obj = document.getElementById("cancelLoader"+kittyId)
   if (error) {
-    replaceElement(obj, renderCancelButton(kittyId).outerHTML+`<br><p style="color:red;  display: inline-block">Error sending tx: ${error}</b></p>`)
+    replaceElement(obj, `<br><p style="color:red;  display: inline-block">Error sending tx: ${error}</b></p>`, renderCancelButton(kittyId))
   } else {
-    replaceElement(obj, renderCancelButton(kittyId).outerHTML+`<p style="color:green; display: inline-block"><b>Cancel tx sent: <a href="https://etherscan.io/tx/${tx}">${tx}</a></b></p>`)
+    replaceElement(obj, `<p style="color:green; display: inline-block"><b>Cancel tx sent: <a href="https://etherscan.io/tx/${tx}">${tx}</a></b></p>`, renderCancelButton(kittyId))
   }
 }
 
@@ -185,15 +195,16 @@ function getAuction(kittyId, price) {
 
 function processAuction(kittyId, response, price) {
   if (response[1].toNumber() > 0) {
+    let gasPrice = document.getElementById("defaultGasInput").value
     let startingPrice = response[1]
     let endingPrice = response[2]
     let duration = response[3]
     if (startingPrice.lessThanOrEqualTo(endingPrice)) {
-      saleContract.bid(kittyId, {value: price}, (error, response)=>finishBuy(kittyId, error, response))
+      saleContract.bid(kittyId, {value: price, gasPrice: web3.toWei(gasPrice, "gwei")}, (error, response)=>finishBuy(kittyId, error, response))
     } else {
       let difference = endingPrice.minus(startingPrice)
       let margin = difference.dividedToIntegerBy(duration / (3600))
-      saleContract.bid(kittyId, {value: price.plus(margin)}, (error, response)=>finishBuy(kittyId, error, response))
+      saleContract.bid(kittyId, {value: price.plus(margin), gasPrice: web3.toWei(gasPrice, "gwei")}, (error, response)=>finishBuy(kittyId, error, response))
     }
   }
 }
@@ -201,9 +212,9 @@ function processAuction(kittyId, response, price) {
 function finishBuy(kittyId, error, tx) {
   obj = document.getElementById("buyLoader"+kittyId)
   if (error) {
-    replaceElement(obj, renderBuyButton(kittyId).outerHTML+`<br><p style="color:red;  display: inline-block">Error sending tx: ${error}</b></p>`)
+    replaceElement(obj, `<br><p style="color:red;  display: inline-block">Error sending tx: ${error}</b></p>`, renderBuyButton(kittyId))
   } else {
-    replaceElement(obj, renderBuyButton(kittyId).outerHTML+`<p style="color:green; display: inline-block"><b>Sale tx sent: <a href="https://etherscan.io/tx/${tx}">${tx}</a></b></p>`)
+    replaceElement(obj, `<p style="color:green; display: inline-block"><b>Sale tx sent: <a href="https://etherscan.io/tx/${tx}">${tx}</a></b></p>`, renderBuyButton(kittyId))
   }
 }
 
@@ -215,15 +226,11 @@ function updatePrice(kittyId, callback) {
   saleContract.getCurrentPrice(kittyId, (error,response) => updatePriceFinish(kittyId, response, error, callback))
 }
 
-var defaultHours = 6
-var defaultPriceFrom = 0.1
-var defaultPriceTo = 0
-
 function updatePriceFinish(kittyId, price, error, callback) {
   if (!error) {
     if (price.toNumber() > 0) {
       obj = document.getElementById("loader"+kittyId)
-      replaceElement(obj, renderSalePrice(web3.fromWei(price).toFixed(3), kittyId).outerHTML)
+      replaceElement(obj, null, renderSalePrice(web3.fromWei(price).toFixed(3), kittyId))
       if (callback) callback(price)
     } else {
       obj = document.getElementById("loader"+kittyId)
@@ -263,7 +270,7 @@ function renderBuyButton(kittyId) {
 
 function renderCancelButton(kittyId) {
   cancelButton = document.createElement('button')
-  cancelButton.innerHTML = 'Cancel'
+  cancelButton.innerHTML = 'Cancel Sale'
   cancelButton.style.width = '100px'
   cancelButton.style.height = '30px'
   cancelButton.style['margin-left'] = '20px'
@@ -280,39 +287,51 @@ function checkCatForSale(kittyId, response, error) {
       replaceElement(obj, `<p style="color:red"><b>The cat is already on sale for: ${web3.fromWei(response).toFixed(3)}</b></p>`)
     } else {
       obj = document.getElementById("loader"+kittyId)
-      replaceElement(obj, sellForm(kittyId))
+      replaceElement(obj, saleForm(kittyId))
     }
   }
 }
 
-function sellForm(kittyId) {
+function saleForm(kittyId) {
+  var defaultGas = document.getElementById("defaultGasInput").value
+  var defaultHours = document.getElementById("defaultSaleHoursInput").value
+  var defaultPriceFrom = document.getElementById("defaultSaleStartInput").value
+  var defaultPriceTo = document.getElementById("defaultSaleEndInput").value
+
   var str = ""
   str += `<div id="saleForm${kittyId}">`
-  str += `Price: <input id="priceFrom${kittyId}" value="${defaultPriceFrom}" style="width:6em">-><input id="priceTo${kittyId}" value="${defaultPriceTo}" style="width:6em"><br/>`
-  str += `Duration (hours): <input id="duration${kittyId}" value="${defaultHours}" style="width:6em"><button onclick="confirmSell(${kittyId})">SELL</button></div>`
+  str += `Price: <input id="priceFrom${kittyId}" value="${defaultPriceFrom}" style="width:6em"> ➜ <input id="priceTo${kittyId}" value="${defaultPriceTo}" style="width:6em"><br/><br/>`
+  str += `Duration (hours): <input id="duration${kittyId}" value="${defaultHours}" style="width:6em"><button id="confirmSell${kittyId}" onclick="confirmSell(${kittyId})">SELL</button></div>`
   return str
 }
 
 function confirmSell(kittyId) {
+  let loader = `<div id='sellLoader${kittyId}' style="width: 100%; height: 100px; display: inline; "><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>`
+  obj = document.getElementById("confirmSell"+kittyId)
+  replaceElement(obj, loader)
+
   let priceFrom = document.getElementById("priceFrom"+kittyId).value
   let priceTo = document.getElementById("priceTo"+kittyId).value
   let duration = document.getElementById("duration"+kittyId).value
 
-  var confirmation = `You're selling ${kittyId} for ${web3.fromWei(web3.toWei(priceFrom))}->${web3.fromWei(web3.toWei(priceTo))}ETH during ${(Math.floor(duration*60*60)/3600).toFixed(0)} hours`
+  //var confirmation = `You're selling ${kittyId} for ${web3.fromWei(web3.toWei(priceFrom))} -> ${web3.fromWei(web3.toWei(priceTo))}ETH during ${(Math.floor(duration*60*60)/3600).toFixed(0)} hours`
 
-  if (confirm(confirmation) == true) {
+  //if (confirm(confirmation) == true) {
     sellTransaction(kittyId, priceFrom, priceTo, duration)
-  }
+  //}
 }
 
 function sellTransaction(kittyId, priceFrom, priceTo, duration) {
-  kittyContract.createSaleAuction(kittyId, web3.toWei(priceFrom), web3.toWei(priceTo), Math.floor(duration*60*60), (error, response) => transactionFinished(error, response, kittyId))
+  let gasPrice = document.getElementById("defaultGasInput").value
+  kittyContract.createSaleAuction(kittyId, web3.toWei(priceFrom), web3.toWei(priceTo), Math.floor(duration*60*60), {gasPrice: web3.toWei(gasPrice, "gwei")}, (error, response) => sellTransactionFinished(error, response, kittyId))
 }
 
-function transactionFinished(error, tx, kittyId) {
+function sellTransactionFinished(error, tx, kittyId) {
   obj = document.getElementById("saleForm"+kittyId)
   if (error) {
-    replaceElement(obj, obj.innerHTML+`<br><p style="color:red">Error sending tx: ${error}</b></p>`)
+    replaceElement(obj, `<br><p style="color:red">Error sending tx: ${error}</b></p>`, obj)
+    let sellLoader = document.getElementById("sellLoader"+kittyId)
+    replaceElement(sellLoader, `<button id="confirmSell${kittyId}" onclick="confirmSell(${kittyId})">SELL</button>`)
   } else {
     replaceElement(obj, `<p style="color:green"><b>Sale tx sent: <a href="https://etherscan.io/tx/${tx}">${tx}</a></b></p>`)
   }
@@ -458,6 +477,10 @@ var c = function() {
           imgdiv.style.backgroundColor = color;
           textdiv = document.createElement('div')
           textdiv.classList.add('inline')
+          
+          controlsdiv = document.createElement('div')
+          controlsdiv.classList.add('inline')
+          
           pricediv = document.createElement('div')
           pricediv.classList.add('price')
           
@@ -486,7 +509,7 @@ var c = function() {
           if (Object.keys(auction).length > 0) {
 
             link = renderSalePrice(kittytoolbox.fromWei(auction.current_price).toFixed(3), kittyId)
-            textdiv.appendChild(link)
+            controlsdiv.appendChild(link)
 
             updateButton = document.createElement('button')
             updateButton.innerHTML = 'Reload Price'
@@ -495,14 +518,14 @@ var c = function() {
             updateButton.style['margin-left'] = '20px'
             updateButton.addEventListener('click',() => {updatePrice(kittyId)}, false)
             updateButton.id = 'updatePrice'+kittyId
-            textdiv.appendChild(updateButton)
+            controlsdiv.appendChild(updateButton)
 
             if (!ownersCats()) {
               buyButton = renderBuyButton(kittyId)
-              textdiv.appendChild(buyButton)
+              controlsdiv.appendChild(buyButton)
             } else {
               cancelButton = renderCancelButton(kittyId)
-              textdiv.appendChild(cancelButton)
+              controlsdiv.appendChild(cancelButton)
             }
 
           } else {
@@ -514,10 +537,11 @@ var c = function() {
               sellButton.addEventListener('click',() => {sell(kittyId)}, false)
               sellButton.id = 'sell'+kittyId
 
-              textdiv.appendChild(sellButton)
+              controlsdiv.appendChild(sellButton)
             }
           }
 
+          textdiv.appendChild(controlsdiv)
           textdiv.appendChild(para1)
           textdiv.appendChild(para2)
 
@@ -562,14 +586,23 @@ function updateMetamaskAddress() {
   user = web3.eth.accounts[0];
   let obj = document.getElementById("metamaskSpan")
   obj.innerText = user
-  console.log(user)
+}
+
+function updateMetamaskBalance(balance) {
+  let obj = document.getElementById("balanceSpan")
+  obj.innerText = web3.fromWei(balance).toFixed(3)
 }
 
 setInterval(function() {
           if (web3.eth.accounts[0] !== user) {
             updateMetamaskAddress()
-            }
-          }, 100);
+          }
+}, 1000);
+
+setInterval(function() {
+  web3.eth.getBalance(user, (error, response) => updateMetamaskBalance(response))
+}, 10000);
+
 </script>
 
 </html>
