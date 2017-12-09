@@ -36,7 +36,7 @@ function doRequest(url) {
   if (request.status === 200) {
     return(JSON.parse(request.responseText));
   } else {
-    return null
+    return('Error: '+request.status)
   }
 }
 
@@ -235,10 +235,23 @@ function getPrice(cat, threshold) {
 }
 
 function getPortfolio(owner) {
-  url = 'https://microetheroll.com:3331/getPortfolio?owner='+owner;
-//  url = 'http://localhost:3333/getPortfolio?owner='+owner;
+  url = serverUrl+'getPortfolio?owner='+owner;
   return doRequest(url)
 }
+
+function getKittiesCount(owner) {
+  var url = CSApi + 'kitties/?owner_wallet_address='+owner+'&limit=1&offset=0'
+  var res = doRequest(url)
+  console.log(res.total)
+  return(res.total)
+}
+
+function queuePortfolio(owner) {
+  url = serverUrl+'queuePortfolio?owner='+owner;
+  return doRequest(url)
+}
+
+var freeCatsLimit = 12;
 
 var colors = {"chestnut": "#efe1da",
               "mintgreen": "#cdf5d4",
@@ -247,7 +260,12 @@ var colors = {"chestnut": "#efe1da",
               "limegreen": "#d9f5cb",
               "bubblegum": "#fadff4",
               "topaz": "#d1eeeb",
-              "sizzurp": "#dfdffa"};
+              "sizzurp": "#dfdffa"
+};
+
+
+//serverUrl = 'https://microetheroll.com:3331/'
+serverUrl = 'http://localhost:3331/'
 
 exports.getPrice = getPrice
 exports.getKittyCS = getKittyCS
@@ -262,6 +280,9 @@ exports.fromWei = fromWei
 exports.logging = logging
 exports.CSApi = CSApi
 exports.getPortfolio = getPortfolio
+exports.getKittiesCount = getKittiesCount
 exports.processAuctions = processAuctions
+exports.queuePortfolio = queuePortfolio
+exports.freeCatsLimit = freeCatsLimit
 
 })(typeof exports === 'undefined'? this['kittytoolbox']={}: exports);

@@ -95,6 +95,91 @@ function getFilters() {
   }
 }
 
+function checkPaymentScreen(owner, res) {
+  console.log(owner)
+  console.log(res)
+
+
+  if (res.error) {
+    c.header(`Error occured`)
+  } else {
+    if (res.queue == 0) {
+      ownerCatsCount = kittytoolbox.getKittiesCount(owner)
+      c.header(`Your portfolio wasn't yet processed or included into DB`)
+      c.header(`You have: ` + ownerCatsCount + ` kitties`)
+
+      let elem = document.createElement('p')
+      elem.innerHTML = `<span style="font-size: 25px">To prevent high network load and DoS we only process portfolios below ${kittytoolbox.freeCatsLimit} kittens for free.</span>`
+      c.elem(elem)
+
+      if (ownerCatsCount<=kittytoolbox.freeCatsLimit) {
+        let elem = document.createElement('p')
+        elem.innerHTML = `<span style="font-size: 25px">You can queue processing by pressing the button: </span> <button style="height: 30px; vertical-align:top" onclick="queueProcessing('${owner}')">Queue processing</button>`
+        c.elem(elem)
+      } else {
+        
+        var perHundredCats = 0.02
+        var donation = (ownerCatsCount/100 * perHundredCats).toFixed(3)
+        if (donation<0.01) {donation = 0.01}
+        
+        let elem = document.createElement('p')
+        elem.innerHTML = `<div id="donationInfo"><span style="font-size: 25px">Suggested donation for processing ${ownerCatsCount} cats is:</span> &nbsp;&nbsp; <span style="font-size:30px">${donation} ETH</span> &nbsp&nbsp <button style="height: 25px; vertical-align: text-bottom" id="donateButton" onclick="donate(${donation})">Pay with MetaMask</button><img src="ajax-loader.gif" style="display:none; height:25px; vertical-align: text-bottom" id="donationLoader">`+
+        `<p><span style="font-size: 25px">Your portfolio will be queued for processing after the donation transaction is approved by the network.</span></p></div><br><br><br>`
+        c.elem(elem)
+        c.log(`* In unpredictable situations (like if CryptoKitty API becomes restricted, Server IP banned, CK site down, etc) if there will be no possibility to retreive cats information - `)
+        c.log(`the gas fee to process refunds will be substracted from donation amount`)
+      }
+    }
+    if (res.queue == -1) {
+      c.header(`Your portfolio is currently processing... Check back soon`)
+    }
+    if (res.queue > 0) {
+      c.header(`Your portfolio processing is queued. Your place in queue: ${res.queue}`)
+    }
+  }
+
+}
+
+function donate(donation) {
+  let donationAddress = `0x79635b386B9bd6636Cd701879C32E6dd181C853F`;
+  let button = document.getElementById("donateButton")
+  button.style.display = "none"
+  let loader = document.getElementById("donationLoader")
+  loader.style.display = "inline-block"
+
+  web3.eth.sendTransaction({
+		to: donationAddress,
+		value: web3.toWei(donation),
+		gas: '21000',
+	}, (error, result) => {
+		donateFinish(error, result)
+	});
+}
+
+function queueProcessing(owner) {
+  console.log(`Queueing ${owner}`)
+  response = kittytoolbox.queuePortfolio(owner)
+  c.header(response.text)
+}
+
+function donateFinish(error, tx) {
+  let loader = document.getElementById("donationLoader")
+  loader.style.display = "none"
+
+  donationDiv = document.getElementById("donationInfo")
+  let elem = document.createElement('p')
+
+  if (error) {
+    elem.appendChild(document.createTextNode(error))
+    let button = document.getElementById("donateButton")
+    button.style.display = "inline-block"
+    elem.style.color="red"
+  } else {
+    elem.innerHTML(`<p>Thank you for your donation. Your portfolio will be queued as soon as the transaction is approved: <a href="https://etherscan.io/tx/${tx}">${tx}</a></p><p>Check back later</>`)
+    elem.style.color="green"
+  }
+  donationDiv.appendChild(elem)
+}
 
 function init() {
 
@@ -112,13 +197,13 @@ function init() {
 
   if (getReqParam('owner')) {
     const node = document.getElementById("ownerInput");
-    owner = getReqParam('owner')
+    owner = getReqParam('owner').toLowerCase()
     node.value = owner
     setTimeout(getAllCats, 1000)
   } else {
     if (user) {
       const node = document.getElementById("ownerInput");
-      owner = user
+      owner = user.toLowerCase()
       node.value = owner
       setTimeout(() => getAllCats(owner), 1000)
     }
@@ -130,7 +215,7 @@ function useMetamask() {
   user = web3.eth.accounts[0];
   const node = document.getElementById("ownerInput")
   node.value = user
-  owner = user
+  owner = user.toLowerCase()
   getAllCats(owner)
 }
 
@@ -310,7 +395,7 @@ function saleForm(kittyId) {
 
   var str = ""
   str += `<div id="saleForm${kittyId}">`
-  str += `Price: <input id="priceFrom${kittyId}" value="${defaultPriceFrom}" style="width:6em"> ➜ <input id="priceTo${kittyId}" value="${defaultPriceTo}" style="width:6em"><br/><br/>`
+  str += `Price: <input id="priceFrom${kittyId}" value="${defaultPriceFrom}" style="width:6em"> ➜ <input id="priceTo${kittyId}" value="${defaultPriceTo}" style="width:6em"> ETH<br/><br/>`
   str += `Duration (hours): <input id="duration${kittyId}" value="${defaultHours}" style="width:6em"><button id="confirmSell${kittyId}" onclick="confirmSell(${kittyId})">SELL</button></div>`
   return str
 }
@@ -353,7 +438,7 @@ function getReqParam(name){
 }
 
 function ownersCats() {
-  return (owner == user)
+  return (owner.toLowerCase() == user.toLowerCase())
 }
 
 var allCats = []
@@ -365,7 +450,7 @@ function getAllCats(owner) {
   showLoading()
   if (owner) {
   } else {
-    owner = document.getElementById("ownerInput").value.trim();
+    owner = document.getElementById("ownerInput").value.trim().toLowerCase();
   }
   
   filtersStr = ""
@@ -386,11 +471,12 @@ function showLoading() {
 }
 
 function getPortfolio(owner, callback) {
-  cats = kittytoolbox.getPortfolio(owner)
+  var res = kittytoolbox.getPortfolio(owner)
   callback()
 
-  if (cats.length > 0) {
-
+  if (res.hasDB) {
+    cats = res.cats
+    
     let displayCats = []
 
     cats.forEach(cat => {
@@ -424,10 +510,7 @@ function getPortfolio(owner, callback) {
       displayCat(cat)
     });
   } else {
-      c.header(`No such address in DB`)
-      c.log(`If you want your portfolio added to the DB please contact /u/vicnaum/ on Reddit for the details`)
-      c.log(`To prevent high network load and DoS - manual approval is needed`)
-      c.log(`And now you can input an example address to see how it works: 0xa928ebb0467b4556a766028c50d0350586046cad`)
+    checkPaymentScreen(owner, res)
   }
 }
 
@@ -461,6 +544,10 @@ var c = function() {
           text = document.createTextNode(msg);
           para.appendChild(text);
           consoleDiv.appendChild(para);
+        },
+        elem: function(elem) {
+          consoleDiv = document.getElementById('console');
+          consoleDiv.appendChild(elem);
         },
         header: function(msg) {
           consoleDiv = document.getElementById('console');
@@ -597,7 +684,7 @@ window.addEventListener('load', function() {
   }
 
   // Now you can start your app & access web3 freely:
-  setTimeout(init, 1000)
+  //setTimeout(init, 1000)
 
 
 })
