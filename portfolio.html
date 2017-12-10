@@ -440,7 +440,11 @@ function getReqParam(name){
 }
 
 function ownersCats() {
-  return (owner.toLowerCase() == user.toLowerCase())
+  if (typeof web3 !== 'undefined') {
+    return (owner.toLowerCase() == user.toLowerCase())
+  } else {
+    return false
+  }
 }
 
 var allCats = []
@@ -607,25 +611,26 @@ var c = function() {
             link = renderSalePrice(kittytoolbox.fromWei(auction.current_price).toFixed(3), kittyId)
             controlsdiv.appendChild(link)
 
-            updateButton = document.createElement('button')
-            updateButton.innerHTML = 'Reload Price'
-            updateButton.style.width = '100px'
-            updateButton.style.height = '30px'
-            updateButton.style['margin-left'] = '20px'
-            updateButton.addEventListener('click',() => {updatePrice(kittyId)}, false)
-            updateButton.id = 'updatePrice'+kittyId
-            controlsdiv.appendChild(updateButton)
+            if (typeof web3 !== 'undefined') {
+              updateButton = document.createElement('button')
+              updateButton.innerHTML = 'Reload Price'
+              updateButton.style.width = '100px'
+              updateButton.style.height = '30px'
+              updateButton.style['margin-left'] = '20px'
+              updateButton.addEventListener('click',() => {updatePrice(kittyId)}, false)
+              updateButton.id = 'updatePrice'+kittyId
+              controlsdiv.appendChild(updateButton)
 
-            if (!ownersCats()) {
-              buyButton = renderBuyButton(kittyId)
-              controlsdiv.appendChild(buyButton)
-            } else {
-              cancelButton = renderCancelButton(kittyId)
-              controlsdiv.appendChild(cancelButton)
+              if (!ownersCats()) {
+                buyButton = renderBuyButton(kittyId)
+                controlsdiv.appendChild(buyButton)
+              } else {
+                cancelButton = renderCancelButton(kittyId)
+                controlsdiv.appendChild(cancelButton)
+              }
             }
-
           } else {
-            if (ownersCats()) {
+            if (ownersCats() && (typeof web3 !== 'undefined')) {
               sellButton = document.createElement('button')
               sellButton.innerHTML = 'Sell'
               sellButton.style.width = '200px'
