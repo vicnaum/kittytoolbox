@@ -36,7 +36,9 @@ function doRequest(url) {
   if (request.status === 200) {
     return(JSON.parse(request.responseText));
   } else {
-    console.log('Error: '+request.status)
+    console.log('KittyToolbox Error Status: '+request.status)
+    console.log('KittyToolbox Error Text: '+request.response)
+    console.log('KittyToolbox Error Url: '+url)
     return null //('Error: '+request.status)
   }
 }
@@ -256,6 +258,21 @@ function queuePortfolio(owner) {
   return doRequest(url)
 }
 
+function getPortfolioQueue() {
+  url = serverUrl+'getPortfolioQueue';
+  return doRequest(url)
+}
+
+function getProcessQueue() {
+  url = serverUrl+'getProcessQueue';
+  return doRequest(url)
+}
+
+function getQueues() {
+  url = serverUrl+'getQueues';
+  return doRequest(url)
+}
+
 var freeCatsLimit = 12;
 
 var colors = {"chestnut": "#efe1da",
@@ -289,5 +306,8 @@ exports.getKittiesCount = getKittiesCount
 exports.processAuctions = processAuctions
 exports.queuePortfolio = queuePortfolio
 exports.freeCatsLimit = freeCatsLimit
+exports.getPortfolioQueue = getPortfolioQueue
+exports.getProcessQueue = getProcessQueue
+exports.getQueues = getQueues
 
 })(typeof exports === 'undefined'? this['kittytoolbox']={}: exports);

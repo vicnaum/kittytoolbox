@@ -24,11 +24,73 @@ img {
 a {
   color: rgb(3, 104, 145);
 }
+.toggleButton {
+  border-bottom: dashed 1px;
+  padding: 5px;
+  color: rgb(3, 104, 145);
+  font-weight: bold;
+}
+
+.toggleButton:hover {
+  cursor: pointer;
+}
 </style>
+<script>
+  var queueShown = false
+
+  function toggleQueue() {
+    if (queueShown) {
+      document.getElementById("queueInfo").style.display = 'none'
+    } else {
+      loadQueue()
+      document.getElementById("queueInfo").style.display = 'block'
+    }
+    queueShown = !queueShown
+  }
+
+  function loadQueue() {
+    processQueue = kittytoolbox.getProcessQueue()
+    portfolioQueue = kittytoolbox.getPortfolioQueue()
+    var str = ""
+    var portfolios = ""
+    portfolioQueue.forEach((elem) => {
+      portfolios += `<br>${elem.owner} - ${elem.count} cats`
+    })
+    if (portfolios != "") {
+      str += 'Currently in Queue:<br>'+portfolios
+    }
+
+    var processing = ""
+    processQueue.forEach((elem) => {
+      processing += `<br>${elem.owner} - ${elem.count} cats`
+    })
+    if (processing != "") {
+      str += 'Currently Processing:<br>'+processing
+    }
+
+    if (str == "") {
+      str = "Currently 0 requests in queue"
+    }
+
+    document.getElementById("queueInfo").innerHTML = str
+  }
+
+  setInterval(loadQueue, 30000)
+
+  function updateQueues() {
+    let queues = kittytoolbox.getQueues()
+    document.getElementById("toggleQueue").innerHTML = `Queue: ${queues.portfolio}, Processing: ${queues.process}`
+  }
+
+  setInterval(updateQueues, 10000)
+</script>
 </head>
 
 <body>
-<h1>Kitty-Toolbox - Portfolio Estimation</h1>
+<h1 style="display:inline-block">Kitty-Toolbox - Portfolio Estimation</h1> &nbsp;&nbsp;&nbsp;&nbsp; <span class="toggleButton" id="toggleQueue" onclick="toggleQueue()">Queue: ...</span>
+<div id="queueInfo" style="display:none">
+Loading...
+</div>
 <p><a href="/kittytoolbox/">Rarity Calculator</a> &nbsp;&nbsp;&nbsp;&nbsp; Estimate Portfolio Tool &nbsp;&nbsp;&nbsp;&nbsp; Your MetaMask Address: <span style="font-weight: bold" id="metamaskSpan">...</span> (Balance: <span id="balanceSpan" style="font-size:32px; font-weight: bold">...</span> ETH)</p>
 <!--p>Currently this works only for those who messaged in the comments here: <a href="https://www.reddit.com/r/CryptoKitties/comments/7igv1z/portfolio_estimator_from_kittytoolbox_estimate/">reddit topic</a> (please specify how many cats you have)</p-->
 <p>Test it with <a href="/kittytoolbox/portfolio.html?owner=0x79635b386b9bd6636cd701879c32e6dd181c853f">0x79635b386b9bd6636cd701879c32e6dd181c853f</a> to see how it works</p>
@@ -690,7 +752,6 @@ window.addEventListener('load', function() {
   // Now you can start your app & access web3 freely:
   setTimeout(init, 1000)
 
-
 })
 
 function updateMetamaskAddress() {
@@ -704,6 +765,7 @@ function updateMetamaskBalance(balance) {
   obj.innerText = web3.fromWei(balance).toFixed(3)
 }
 
+updateQueues()
 
 </script>
 
