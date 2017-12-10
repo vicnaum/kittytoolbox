@@ -188,7 +188,6 @@ function checkPaymentScreen(owner, res) {
         let elem = document.createElement('p')
         elem.innerHTML = `<div id="donationInfo"><span style="font-size: 25px">Suggested donation for processing ${ownerCatsCount} cats is:</span> &nbsp;&nbsp; <span style="font-size:30px">${donation} ETH</span> &nbsp&nbsp <button style="height: 25px; vertical-align: text-bottom" id="donateButton" onclick="donate(${donation})">Pay with MetaMask</button><img src="ajax-loader.gif" style="display:none; height:25px; vertical-align: text-bottom" id="donationLoader">`+
         `<p><span style="font-size: 25px">Your portfolio will be queued for processing after the donation transaction is approved by the network.</span></p></div><br><br>`+
-        `<p><strong>*Today - donation requests will be processed manually.</strong> You may have to wait for some time (especially at night)</p><br><br>`
         c.elem(elem)
         c.log(`* In unpredictable situations (like if CryptoKitty API becomes restricted, Server IP banned, CK site down, etc) if there will be no possibility to retreive cats information - `)
         c.log(`the gas fee to process refunds will be substracted from donation amount`)
