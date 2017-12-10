@@ -57,15 +57,15 @@ a {
       portfolios += `<br>${elem.owner} - ${elem.count} cats`
     })
     if (portfolios != "") {
-      str += 'Currently in Queue:<br>'+portfolios
+      str += '<b>Currently in Queue:</b><br>'+portfolios
     }
 
     var processing = ""
     processQueue.forEach((elem) => {
-      processing += `<br>${elem.owner} - ${elem.count} cats`
+      processing += `<br>${elem.owner} - ${elem.count} cats<br>`
     })
     if (processing != "") {
-      str += 'Currently Processing:<br>'+processing
+      str += '<b>Currently Processing:</b><br>'+processing
     }
 
     if (str == "") {
