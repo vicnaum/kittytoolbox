@@ -34,6 +34,17 @@ a {
 .toggleButton:hover {
   cursor: pointer;
 }
+
+.fakelink {
+  border-bottom: dashed 1px;
+  color: rgb(3, 104, 145);
+}
+
+.fakelink:hover {
+  cursor: pointer;
+}
+
+
 </style>
 <script>
   var queueShown = false
@@ -83,6 +94,16 @@ a {
   }
 
   setInterval(updateQueues, 10000)
+
+  function getAverageGas() {
+    let gasInput = document.getElementById("defaultGasInput")
+    gasInput.value = '...'
+    const proxyUrl = "https://cors-anywhere.herokuapp.com/";
+    let ethgasApi = `https://ethgasstation.info/json/ethgasAPI.json`
+    let gasPrices = kittytoolbox.doRequest(proxyUrl+ethgasApi)
+    gasInput.value = Math.round(gasPrices.average/10)
+    console.log(Math.round(gasPrices.average/10))
+  }
 </script>
 </head>
 
@@ -100,10 +121,10 @@ Owner address: <input style="width:30em" id="ownerInput"/>
 <br><br><b>Filters:</b>
 All:<input type="radio" name="sellingFilter" value="sellingAll" id="sellingAll" checked> | Selling:<input type="radio" name="sellingFilter" value="sellingTrue" id="sellingTrue"> | Not Selling:<input type="radio" name="sellingFilter" value="sellingFalse" id="sellingFalse">
 <button onclick="applyFilters()">Apply</button>
- &nbsp;&nbsp;
- &nbsp;&nbsp; <b>Sale Price:</b> <input id="defaultSaleStartInput" style="width: 3em" value="0.1"> <span style="font-size:20px">➜</span> <input id="defaultSaleEndInput" style="width: 3em" value="0"> ETH
- &nbsp;&nbsp; <b>Sale Time:</b> <input id="defaultSaleHoursInput" style="width: 3em" value="12"> (hours)
- &nbsp;&nbsp; <b>Defaults: Gas</b> <input id="defaultGasInput" style="width: 3em" value="45"> Gwei (<a href="https://ethgasstation.info/">check best gas</a>)
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Defaults: </b>
+ &nbsp;&nbsp; Sale Price: <input id="defaultSaleStartInput" style="width: 3em" value="0.1"> <span style="font-size:20px">➜</span> <input id="defaultSaleEndInput" style="width: 3em" value="0"> ETH
+ &nbsp;&nbsp; Sale Time: <input id="defaultSaleHoursInput" style="width: 3em" value="12"> (hours)
+ &nbsp;&nbsp; Gas: <input id="defaultGasInput" style="width: 3em" value="45"> Gwei (<span class="fakelink" onclick="getAverageGas()">Refresh</span> or <a href="https://ethgasstation.info/" target="blank">Check ethgasstation</a>)
 
 <div id='console'></div>
 <div id='loader' style="width: 100%; height: 100px; display: none"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>
@@ -727,6 +748,7 @@ var c = function() {
 
 
 window.addEventListener('load', function() {
+  setTimeout(getAverageGas, 100)
 
   // Checking if Web3 has been injected by the browser (Mist/MetaMask)
   if (typeof web3 !== 'undefined') {
