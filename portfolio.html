@@ -56,6 +56,7 @@ var owner
 const node = document.getElementById("ownerInput");
 node.addEventListener('keydown', function(event) {
     if (event.key === "Enter") {
+      owner = node.value
       getAllCats()
     }
 });
@@ -445,14 +446,10 @@ function ownersCats() {
 var allCats = []
 
 
-function getAllCats(owner) {
-  console.log(user)
+function getAllCats() {
   c.cls()
+  owner = document.getElementById("ownerInput").value.trim().toLowerCase();
   showLoading()
-  if (owner) {
-  } else {
-    owner = document.getElementById("ownerInput").value.trim().toLowerCase();
-  }
   
   filtersStr = ""
   if (Object.keys(filters).length>0) filtersStr = "&"
