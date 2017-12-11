@@ -273,7 +273,7 @@ function getQueues() {
   return doRequest(url)
 }
 
-var freeCatsLimit = 24;
+var freeCatsLimit = 50;
 
 var colors = {"chestnut": "#efe1da",
               "mintgreen": "#cdf5d4",
