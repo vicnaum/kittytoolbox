@@ -3,11 +3,20 @@
 
 <head>
 <title>Kitty-Toolbox - Estimate Portfolio</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+
 <script src="kittytoolbox.js"></script>
 <script src="kittyAbi.js"></script>
 <script src="saleClockAuctionAbi.js"></script>
 
-<style>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+
+	<!--style>
 img {
   vertical-align: middle;
   }
@@ -45,8 +54,65 @@ a {
 }
 
 
-</style>
-<script>
+</style-->
+</head>
+
+<body>
+<div class="container">
+	<div class="row">
+    <div class="col">
+<h1>Kitty-Toolbox - Portfolio Estimation</h1>
+		</div>
+	</div>
+	<div class=row">
+	    <span class="toggleButton" id="toggleQueue" onclick="toggleQueue()">Queue: ...</span>
+<div id="queueInfo" style="display:none">
+Loading...
+</div>
+	<div class="row">
+			<div class="col">
+					
+<p>
+	<a href="/kittytoolbox/">Rarity Calculator</a> 
+			   Estimate Portfolio Tool 
+			   Your MetaMask Address: <span style="font-weight: bold" id="metamaskSpan">...</span> 
+		(Balance: <span id="balanceSpan" style="font-size:32px; font-weight: bold">...</span> ETH)
+</p>
+<!--p>Currently this works only for those who messaged in the comments here: <a href="https://www.reddit.com/r/CryptoKitties/comments/7igv1z/portfolio_estimator_from_kittytoolbox_estimate/">reddit topic</a> (please specify how many cats you have)</p-->
+<p>Test it with <a href="/kittytoolbox/portfolio.html?owner=0x79635b386b9bd6636cd701879c32e6dd181c853f">0x79635b386b9bd6636cd701879c32e6dd181c853f</a> to see how it works</p>
+</div>
+</div>
+<div class="row">
+		<div class="col">
+												       <p>
+Owner address: <input style="width:30em" id="ownerInput" class="form-control"/>
+<button onclick="getAllCats()" class="btn btn-default">Estimate</button> 
+<button onclick="useMetamask()" class="btn btn-default">Use MetaMask Address</button> (&lt;-- use this button if this is your portfolio, but you don't see "sell" and "cancel" buttons)
+</p>
+<h2>Filters:</h2>
+<p>
+All:<input type="radio" name="sellingFilter" value="sellingAll" id="sellingAll" checked> | 
+Selling:<input type="radio" name="sellingFilter" value="sellingTrue" id="sellingTrue"> | 
+Not Selling:<input type="radio" name="sellingFilter" value="sellingFalse" id="sellingFalse">
+</p>
+
+ <button onclick="applyFilters()" class="btn btn-default">Apply</button>
+							 
+	
+<b>Defaults: </b>
+Sale Price: <input id="defaultSaleStartInput" style="width: 3em" value="0.1"> <span style="font-size:20px">➜</span> <input id="defaultSaleEndInput" style="width: 3em" value="0"> ETH
+Sale Time: <input id="defaultSaleHoursInput" style="width: 3em" value="12"> (hours)
+Gas: <input id="defaultGasInput" style="width: 3em" value="45"> Gwei (<span class="fakelink" onclick="getAverageGas()">Refresh</span> or <a href="https://ethgasstation.info/" target="blank">Check ethgasstation</a>)
+
+<div id='console'></div>
+<div id='loader' style="width: 100%; height: 100px; display: none"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>
+<div style="margin-top: 20px">
+</div>
+	</div>
+</div>
+</body>
+	
+	<script>
   var queueShown = false
 
   function toggleQueue() {
@@ -105,32 +171,6 @@ a {
     console.log(Math.round(gasPrices.average/10))
   }
 </script>
-</head>
-
-<body>
-<h1 style="display:inline-block">Kitty-Toolbox - Portfolio Estimation</h1> &nbsp;&nbsp;&nbsp;&nbsp; <span class="toggleButton" id="toggleQueue" onclick="toggleQueue()">Queue: ...</span>
-<div id="queueInfo" style="display:none">
-Loading...
-</div>
-<p><a href="/kittytoolbox/">Rarity Calculator</a> &nbsp;&nbsp;&nbsp;&nbsp; Estimate Portfolio Tool &nbsp;&nbsp;&nbsp;&nbsp; Your MetaMask Address: <span style="font-weight: bold" id="metamaskSpan">...</span> (Balance: <span id="balanceSpan" style="font-size:32px; font-weight: bold">...</span> ETH)</p>
-<!--p>Currently this works only for those who messaged in the comments here: <a href="https://www.reddit.com/r/CryptoKitties/comments/7igv1z/portfolio_estimator_from_kittytoolbox_estimate/">reddit topic</a> (please specify how many cats you have)</p-->
-<p>Test it with <a href="/kittytoolbox/portfolio.html?owner=0x79635b386b9bd6636cd701879c32e6dd181c853f">0x79635b386b9bd6636cd701879c32e6dd181c853f</a> to see how it works</p>
-
-Owner address: <input style="width:30em" id="ownerInput"/>
-<button onclick="getAllCats()">Estimate</button> &nbsp;&nbsp; <button onclick="useMetamask()">Use MetaMask Address</button> (&lt;-- use this button if this is your portfolio, but you don't see "sell" and "cancel" buttons)
-<br><br><b>Filters:</b>
-All:<input type="radio" name="sellingFilter" value="sellingAll" id="sellingAll" checked> | Selling:<input type="radio" name="sellingFilter" value="sellingTrue" id="sellingTrue"> | Not Selling:<input type="radio" name="sellingFilter" value="sellingFalse" id="sellingFalse">
-<button onclick="applyFilters()">Apply</button>
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Defaults: </b>
- &nbsp;&nbsp; Sale Price: <input id="defaultSaleStartInput" style="width: 3em" value="0.1"> <span style="font-size:20px">➜</span> <input id="defaultSaleEndInput" style="width: 3em" value="0"> ETH
- &nbsp;&nbsp; Sale Time: <input id="defaultSaleHoursInput" style="width: 3em" value="12"> (hours)
- &nbsp;&nbsp; Gas: <input id="defaultGasInput" style="width: 3em" value="45"> Gwei (<span class="fakelink" onclick="getAverageGas()">Refresh</span> or <a href="https://ethgasstation.info/" target="blank">Check ethgasstation</a>)
-
-<div id='console'></div>
-<div id='loader' style="width: 100%; height: 100px; display: none"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>
-<div style="margin-top: 20px">
-</div>
-</body>
 
 <script>
 
