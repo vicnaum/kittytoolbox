@@ -84,20 +84,39 @@ Loading...
 </div>
 <div class="row">
 		<div class="col">
-<p>
-Owner address: <input style="width:30em" id="ownerInput" class="form-control"/>
+<p><div class="form-group">
+    <label for="exampleInputEmail1">Owner address:</lable><input style="width:30em" id="ownerInput" class="form-control"/>
+															</div>
+															
 <button onclick="getAllCats()" class="btn btn-info">Estimate</button> 
 <button onclick="useMetamask()" class="btn btn-info">Use MetaMask Address</button> (&lt;-- use this button if this is your portfolio, but you don't see "sell" and "cancel" buttons)
 </p>
-<h2>Filters:</h2>
-<p>
-All:<input type="radio" name="sellingFilter" value="sellingAll" id="sellingAll" checked  class="form-control"> | 
-Selling:<input type="radio" name="sellingFilter" value="sellingTrue" id="sellingTrue"  class="form-control"> | 
-Not Selling:<input type="radio" name="sellingFilter" value="sellingFalse" id="sellingFalse"  class="form-control">
-</p>
+</div>
+</div>
 
+<div class="row">
+		<div class="col">
+<h2>Filters:</h2>
+<div class="form-check form-check-inline">
+  <label class="form-check-label">
+<input type="radio" name="sellingFilter" value="sellingAll" id="sellingAll" checked class="form-check-input"> All
+													    </label>
+													    </div>
+<div class="form-check form-check-inline">
+  <label class="form-check-label">
+<input type="radio" name="sellingFilter" value="sellingTrue" id="sellingTrue"  class="form-check-input"> Selling</label>
+													    </div>
+<div class="form-check form-check-inline">
+  <label class="form-check-label">
+<input type="radio" name="sellingFilter" value="sellingFalse" id="sellingFalse"  class="form-check-input"> Not Selling
+													 </label>
+													    </div>
  <button onclick="applyFilters()" class="btn btn-info">Apply</button>
-							 
+</div>
+</div>
+
+<div class="row">
+		<div class="col">
 	
 <b>Defaults: </b>
 Sale Price: <input id="defaultSaleStartInput" style="width: 3em" value="0.1"  class="form-control"> <span style="font-size:20px">➜</span> <input id="defaultSaleEndInput" style="width: 3em" value="0"> ETH
