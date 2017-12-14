@@ -159,8 +159,11 @@ Loading...
 </div>
 </div>
 
-
+<div class="row">
+<div class="col">
 <div id='console'></div>
+		 </div>
+		 </div>
 <div id='loader' style="width: 100%; height: 100px; display: none"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>
 <div style="margin-top: 20px">
 </div>
@@ -737,20 +740,27 @@ var c = function() {
           consoleDiv.appendChild(para);
         },
         cat: function(img, line1, line2, line3, searchLink, kittyId, color, auction) {
-          consoleDiv = document.getElementById('console')
+          
+	  consoleDiv = document.getElementById('console')
 
           a = document.createElement('a')
           a.href = ('https://www.cryptokitties.co/kitty/'+kittyId)
 
           image = document.createElement('img')
+	  image.classList.add('img');
+	  image.classList.add('img-responsive');
           image.src = img
-          image.width = 100
-          image.height = 100
+          //image.width = 100
+          //image.height = 100
 
           div = document.createElement('div')
-          div.classList.add('row')
+          div.classList.add('card')
+		
+	  headerdiv = document.createElement('div')
+          headerdiv.classList.add('card-header')
+		
           imgdiv = document.createElement('div')
-          imgdiv.classList.add('inline')
+          imgdiv.classList.add('col-4')
           imgdiv.style.backgroundColor = color;
           textdiv = document.createElement('div')
           textdiv.classList.add('inline')
@@ -761,7 +771,7 @@ var c = function() {
           pricediv = document.createElement('div')
           pricediv.classList.add('price')
           
-          para1 = document.createElement('p')
+          //para1 = document.createElement('p')
           para2 = document.createElement('p')
           para3 = document.createElement('pre')
 
@@ -820,7 +830,7 @@ var c = function() {
           }
 
           textdiv.appendChild(controlsdiv)
-          textdiv.appendChild(para1)
+          headerdiv.appendChild(para1)
           textdiv.appendChild(para2)
 
           para3.appendChild(text3)
@@ -828,9 +838,15 @@ var c = function() {
           
           pricediv.appendChild(search)
 
-          div.appendChild(imgdiv)
-          div.appendChild(textdiv)
-          div.appendChild(pricediv)
+	  cardbodydiv = document.createElement('div')
+          cardbodydiv.classList.add('card-body')
+		
+	  cardbodydiv.appendChild(imgdiv)
+          cardbodydiv.appendChild(textdiv)
+          cardbodydiv.appendChild(pricediv)
+		
+	  div.appendChild(headerdiv)
+	  div.appendChild(cardbodydiv)
 
           consoleDiv.appendChild(div)
         },
