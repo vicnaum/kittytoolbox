@@ -762,8 +762,9 @@ var c = function() {
           imgdiv = document.createElement('div')
           imgdiv.classList.add('col-4')
           imgdiv.style.backgroundColor = color;
+		
           textdiv = document.createElement('div')
-          textdiv.classList.add('inline')
+          textdiv.classList.add('col-8')
           
           controlsdiv = document.createElement('div')
           controlsdiv.classList.add('inline')
@@ -843,7 +844,7 @@ var c = function() {
 		
 	  cardbodydiv.appendChild(imgdiv)
           cardbodydiv.appendChild(textdiv)
-          cardbodydiv.appendChild(pricediv)
+          textdiv.appendChild(pricediv)
 		
 	  div.appendChild(headerdiv)
 	  div.appendChild(cardbodydiv)
