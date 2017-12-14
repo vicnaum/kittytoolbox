@@ -273,6 +273,11 @@ function getQueues() {
   return doRequest(url)
 }
 
+function getProcessed() {
+  url = serverUrl+'getProcessed';
+  return doRequest(url)
+}
+
 var freeCatsLimit = 50;
 
 var colors = {"chestnut": "#efe1da",
@@ -309,5 +314,6 @@ exports.freeCatsLimit = freeCatsLimit
 exports.getPortfolioQueue = getPortfolioQueue
 exports.getProcessQueue = getProcessQueue
 exports.getQueues = getQueues
+exports.getProcessed = getProcessed
 
 })(typeof exports === 'undefined'? this['kittytoolbox']={}: exports);

@@ -93,7 +93,13 @@ a {
     document.getElementById("toggleQueue").innerHTML = `Queue: ${queues.portfolio}, Processing: ${queues.process}`
   }
 
+  function updateProcessed() {
+    let processed = kittytoolbox.getProcessed()
+    document.getElementById("processed").innerHTML = processed
+  }
+
   setInterval(updateQueues, 10000)
+  setInterval(updateProcessed, 11000)
 
   function getAverageGas() {
     let gasInput = document.getElementById("defaultGasInput")
@@ -108,7 +114,9 @@ a {
 </head>
 
 <body>
-<h1 style="display:inline-block">Kitty-Toolbox - Portfolio Estimation</h1> &nbsp;&nbsp;&nbsp;&nbsp; <span class="toggleButton" id="toggleQueue" onclick="toggleQueue()">Queue: ...</span>
+<h1 style="display:inline-block">Kitty-Toolbox - Portfolio Estimation</h1>
+&nbsp;&nbsp;&nbsp;&nbsp; <span class="toggleButton" id="toggleQueue" onclick="toggleQueue()">Queue: ...</span>
+&nbsp;&nbsp;&nbsp;&nbsp; Portfolios in DB: <span id="processed" style="font-weight: bold">...</span>
 <div id="queueInfo" style="display:none">
 Loading...
 </div>
@@ -787,6 +795,7 @@ function updateMetamaskBalance(balance) {
 }
 
 updateQueues()
+updateProcessed()
 
 </script>
 
