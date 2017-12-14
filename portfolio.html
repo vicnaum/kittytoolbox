@@ -84,25 +84,25 @@ Loading...
 </div>
 <div class="row">
 		<div class="col">
-												       <p>
+<p>
 Owner address: <input style="width:30em" id="ownerInput" class="form-control"/>
 <button onclick="getAllCats()" class="btn btn-info">Estimate</button> 
 <button onclick="useMetamask()" class="btn btn-info">Use MetaMask Address</button> (&lt;-- use this button if this is your portfolio, but you don't see "sell" and "cancel" buttons)
 </p>
 <h2>Filters:</h2>
 <p>
-All:<input type="radio" name="sellingFilter" value="sellingAll" id="sellingAll" checked> | 
-Selling:<input type="radio" name="sellingFilter" value="sellingTrue" id="sellingTrue"> | 
-Not Selling:<input type="radio" name="sellingFilter" value="sellingFalse" id="sellingFalse">
+All:<input type="radio" name="sellingFilter" value="sellingAll" id="sellingAll" checked  class="form-control"> | 
+Selling:<input type="radio" name="sellingFilter" value="sellingTrue" id="sellingTrue"  class="form-control"> | 
+Not Selling:<input type="radio" name="sellingFilter" value="sellingFalse" id="sellingFalse"  class="form-control">
 </p>
 
  <button onclick="applyFilters()" class="btn btn-info">Apply</button>
 							 
 	
 <b>Defaults: </b>
-Sale Price: <input id="defaultSaleStartInput" style="width: 3em" value="0.1"> <span style="font-size:20px">➜</span> <input id="defaultSaleEndInput" style="width: 3em" value="0"> ETH
-Sale Time: <input id="defaultSaleHoursInput" style="width: 3em" value="12"> (hours)
-Gas: <input id="defaultGasInput" style="width: 3em" value="45"> Gwei (<span class="fakelink" onclick="getAverageGas()">Refresh</span> or <a href="https://ethgasstation.info/" target="blank">Check ethgasstation</a>)
+Sale Price: <input id="defaultSaleStartInput" style="width: 3em" value="0.1"  class="form-control"> <span style="font-size:20px">➜</span> <input id="defaultSaleEndInput" style="width: 3em" value="0"> ETH
+Sale Time: <input id="defaultSaleHoursInput" style="width: 3em" value="12"  class="form-control"> (hours)
+Gas: <input id="defaultGasInput" style="width: 3em" value="45" class="form-control"> Gwei (<span class="fakelink" onclick="getAverageGas()">Refresh</span> or <a href="https://ethgasstation.info/" target="blank">Check ethgasstation</a>)
 
 <div id='console'></div>
 <div id='loader' style="width: 100%; height: 100px; display: none"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>
