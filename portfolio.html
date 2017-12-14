@@ -82,15 +82,20 @@ Loading...
 <p>Test it with <a href="/kittytoolbox/portfolio.html?owner=0x79635b386b9bd6636cd701879c32e6dd181c853f">0x79635b386b9bd6636cd701879c32e6dd181c853f</a> to see how it works</p>
 </div>
 </div>
+												       
+												       
 <div class="row">
-		<div class="col">
-<p><div class="form-group">
-    <label for="ownerInput">Owner address:</label><input style="width:30em" id="ownerInput" class="form-control"/>
-															</div>
-															
-<button onclick="getAllCats()" class="btn btn-info">Estimate</button> 
-<button onclick="useMetamask()" class="btn btn-info">Use MetaMask Address</button> (&lt;-- use this button if this is your portfolio, but you don't see "sell" and "cancel" buttons)
-</p>
+<div class="col">
+
+<form class="form-inline">				 
+	<div class="form-group">
+	    <label for="ownerInput">Owner address:</label><input style="width:30em" id="ownerInput" class="form-control"/>
+	</div>
+
+	<button onclick="getAllCats()" class="btn btn-info">Estimate</button> 
+	<button onclick="useMetamask()" class="btn btn-info">Use MetaMask Address</button> (&lt;-- use this button if this is your portfolio, but you don't see "sell" and "cancel" buttons)
+</form>
+
 </div>
 </div>
 
@@ -123,6 +128,7 @@ Loading...
 		<div class="col">
 	
 <h3>Defaults: </h3>
+				<form class="form-inline">
 <div class="form-group">
     <label for="ownerInput">Sale Price</label><input id="defaultSaleStartInput" style="width: 3em" value="0.1"  class="form-control"> <span style="font-size:20px">➜</span> <input id="defaultSaleEndInput" style="width: 3em" value="0"> ETH
 </div>
@@ -134,6 +140,8 @@ Sale Time, hours </label> <input id="defaultSaleHoursInput" style="width: 3em" v
     <label for="ownerInput">
 Gas, Gwei </label> <input id="defaultGasInput" style="width: 3em" value="45" class="form-control">  (<span class="fakelink" onclick="getAverageGas()">Refresh</span> or <a href="https://ethgasstation.info/" target="blank">Check ethgasstation</a>)
 </div>
+</form>
+
 </div>
 </div>
 
