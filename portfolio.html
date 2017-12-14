@@ -839,8 +839,11 @@ var c = function() {
           
           pricediv.appendChild(search)
 
+	  cardbodywrap = document.createElement('div')
+          cardbodywrap.classList.add('card-body')
+	  
 	  cardbodydiv = document.createElement('div')
-          cardbodydiv.classList.add('card-body')
+          cardbodydiv.classList.add('row')
 		
 	  cardbodydiv.appendChild(imgdiv)
           cardbodydiv.appendChild(textdiv)
