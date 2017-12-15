@@ -13,14 +13,30 @@
 </script>
 
 <title>Kitty-Toolbox - Estimate Portfolio</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+
 <script src="kittytoolbox.js"></script>
 <script src="kittyAbi.js"></script>
 <script src="saleClockAuctionAbi.js"></script>
 
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+	
+<script>
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+	
+	
 <style>
-img {
+/*img {
   vertical-align: middle;
-  }
+}
 .row {
   border: 1px solid gray;
   padding-top: 10px;
@@ -33,7 +49,7 @@ img {
 }
 a {
   color: rgb(3, 104, 145);
-}
+}*/
 .toggleButton {
   border-bottom: dashed 1px;
   padding: 5px;
@@ -56,7 +72,115 @@ a {
 
 
 </style>
-<script>
+</head>
+
+<body>
+<div class="container">
+	<div class="row">
+    <div class="col">
+<h1>Kitty-Toolbox - Portfolio Estimation</h1>
+		</div>
+	</div>
+	<div class=row">
+        <span class="toggleButton" id="toggleQueue" onclick="toggleQueue()">Queue: ...</span>
+        &nbsp;&nbsp;&nbsp;&nbsp; Portfolios in DB: <span id="processed" style="font-weight: bold">...</span>
+<div id="queueInfo" style="display:none">
+Loading...
+</div>
+	<div class="row">
+			<div class="col">
+					
+<p>
+	<a href="/kittytoolbox/">Rarity Calculator</a> 
+			   Estimate Portfolio Tool 
+			   Your MetaMask Address: <span style="font-weight: bold" id="metamaskSpan">...</span> 
+		(Balance: <span id="balanceSpan" style="font-size:32px; font-weight: bold">...</span> ETH)
+</p>
+<p>
+	Test it with <a href="/kittytoolbox/portfolio.html?owner=0x79635b386b9bd6636cd701879c32e6dd181c853f">
+	0x79635b386b9bd6636cd701879c32e6dd181c853f</a> to see how it works
+</p>
+</div>
+</div>
+												       
+												       
+<div class="row mb-3">
+    <div class="col">
+
+    <form class="form-inline">				 
+        <div class="form-group">
+            <label for="ownerInput" class="mr-2">Owner address:</label> <input id="ownerInput" class="form-control mr-2" style="min-width: 25em"/>
+        </div>
+        <button onclick="getAllCats()" class="btn btn-primary mr-2">Estimate</button> 
+        <button onclick="useMetamask()" class="btn btn-info" data-toggle="tooltip" data-placement="top" title="use this button if this is your portfolio, but you don't see "sell" and "cancel" buttons">Use MetaMask Address</button>
+    </form>
+
+    </div>
+</div>
+
+<!-- FILTER -->
+<div class="row mb-3">
+		<div class="col">
+<h3>Filters:</h3>
+<div class="form-check form-check-inline">
+  <label class="form-check-label">
+		<input type="radio" name="sellingFilter" value="sellingAll" id="sellingAll" checked class="form-check-input"> All
+	</label>
+	</div>
+<div class="form-check form-check-inline">
+  <label class="form-check-label">
+		<input type="radio" name="sellingFilter" value="sellingTrue" id="sellingTrue"  class="form-check-input"> Selling
+  </label>
+</div>
+<div class="form-check form-check-inline">
+  <label class="form-check-label">
+		<input type="radio" name="sellingFilter" value="sellingFalse" id="sellingFalse"  class="form-check-input"> Not Selling
+ </label>
+</div>
+ <button onclick="applyFilters()" class="btn btn-info">Apply</button>
+</div>
+</div>
+																											
+<!-- FILTER END -->
+
+<div class="row mb-3">
+  <div class="col">
+	
+<h3>Defaults: </h3>
+
+<form class="form-inline">
+<div class="form-group mr-4">
+    <label for="ownerInput" class="mr-2">Sale Price, ETH</label>
+    <input id="defaultSaleStartInput" style="width: 3em" value="0.1" class="form-control"> 
+    <span class="ml-1 mr-1">➜</span> 
+    <input id="defaultSaleEndInput" style="width: 3em" value="0"  class="form-control"> 
+</div>
+<div class="form-group mr-4">
+    <label for="ownerInput" class="mr-2">Sale Time, hours </label>
+    <input id="defaultSaleHoursInput" style="width: 3em" value="12" class="form-control"> 
+</div>
+<div class="form-group">
+    <label for="ownerInput"class="mr-2">Gas, Gwei </label> 
+    <input id="defaultGasInput" style="width: 3em" value="45" class="form-control mr-1">
+    (<span class="fakelink" onclick="getAverageGas()">Refresh</span> &nbsp; or &nbsp; <a href="https://ethgasstation.info/" target="blank">Check ethgasstation</a>)
+</div>
+</form>
+
+</div>
+</div>
+
+<div class="row">
+<div class="col">
+<div id='console'></div>
+		 </div>
+		 </div>
+<div id='loader' style="width: 100%; height: 100px; display: none"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>
+<div style="margin-top: 20px">
+</div>
+
+</body>
+	
+	<script>
   var queueShown = false
 
   function toggleQueue() {
@@ -103,10 +227,11 @@ a {
     document.getElementById("toggleQueue").innerHTML = `Queue: ${queues.portfolio}, Processing: ${queues.process}`
   }
 
-  function updateProcessed() {
-    let processed = kittytoolbox.getProcessed()
-    document.getElementById("processed").innerHTML = processed
-  }
+    function updateProcessed() {
+        let processed = kittytoolbox.getProcessed()
+        document.getElementById("processed").innerHTML = processed
+    }
+    
 
   setInterval(updateQueues, 10000)
   setInterval(updateProcessed, 11000)
@@ -121,36 +246,6 @@ a {
     console.log(Math.round(gasPrices.average/10))
   }
 </script>
-</head>
-
-<body>
-<h1 style="display:inline-block">Kitty-Toolbox - Portfolio Estimation</h1>
-&nbsp;&nbsp;&nbsp;&nbsp; <span class="toggleButton" id="toggleQueue" onclick="toggleQueue()">Queue: ...</span>
-&nbsp;&nbsp;&nbsp;&nbsp; Portfolios in DB: <span id="processed" style="font-weight: bold">...</span>
-<div id="queueInfo" style="display:none">
-Loading...
-</div>
-<p><a href="/kittytoolbox/">Rarity Calculator</a> &nbsp;&nbsp;&nbsp;&nbsp; Estimate Portfolio Tool &nbsp;&nbsp;&nbsp;&nbsp; Your MetaMask Address: <span style="font-weight: bold" id="metamaskSpan">...</span> (Balance: <span id="balanceSpan" style="font-size:32px; font-weight: bold">...</span> ETH)</p>
-<!--p>Currently this works only for those who messaged in the comments here: <a href="https://www.reddit.com/r/CryptoKitties/comments/7igv1z/portfolio_estimator_from_kittytoolbox_estimate/">reddit topic</a> (please specify how many cats you have)</p-->
-<p>Test it with <a href="/kittytoolbox/portfolio.html?owner=0x79635b386b9bd6636cd701879c32e6dd181c853f">0x79635b386b9bd6636cd701879c32e6dd181c853f</a> to see how it works</p>
-
-Owner address: <input style="width:30em" id="ownerInput"/>
-<button onclick="getAllCats()">Estimate</button> &nbsp;&nbsp; <button onclick="useMetamask()">Use MetaMask Address</button> (&lt;-- use this button if this is your portfolio, but you don't see "sell" and "cancel" buttons)
-<br><br><b>Filters:</b>
-All:<input type="radio" name="sellingFilter" value="sellingAll" id="sellingAll" checked> | Selling:<input type="radio" name="sellingFilter" value="sellingTrue" id="sellingTrue"> | Not Selling:<input type="radio" name="sellingFilter" value="sellingFalse" id="sellingFalse">
-<button onclick="applyFilters()">Apply</button>
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Defaults: </b>
- &nbsp;&nbsp; Sale Price: <input id="defaultSaleStartInput" style="width: 3em" value="0.1"> <span style="font-size:20px">➜</span> <input id="defaultSaleEndInput" style="width: 3em" value="0"> ETH
- &nbsp;&nbsp; Sale Time: <input id="defaultSaleHoursInput" style="width: 3em" value="12"> (hours)
- &nbsp;&nbsp; Gas: <input id="defaultGasInput" style="width: 3em" value="45"> Gwei (<span class="fakelink" onclick="getAverageGas()">Refresh</span> or <a href="https://ethgasstation.info/" target="blank">Check ethgasstation</a>)
-
-<div style="color:red; display:none">Server is down. Investigating the issue.</div>
-	
-<div id='console'></div>
-<div id='loader' style="width: 100%; height: 100px; display: none"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>
-<div style="margin-top: 20px">
-</div>
-</body>
 
 <script>
 
@@ -662,23 +757,32 @@ var c = function() {
           consoleDiv.appendChild(para);
         },
         cat: function(img, line1, line2, line3, searchLink, kittyId, color, auction) {
-          consoleDiv = document.getElementById('console')
+          
+	  consoleDiv = document.getElementById('console')
 
           a = document.createElement('a')
           a.href = ('https://www.cryptokitties.co/kitty/'+kittyId)
 
           image = document.createElement('img')
+	  image.classList.add('img');
+	  image.classList.add('img-responsive');
           image.src = img
-          image.width = 100
-          image.height = 100
+          //image.width = 100
+          //image.height = 100
 
           div = document.createElement('div')
-          div.classList.add('row')
+          div.classList.add('card')
+	  div.classList.add('mb-3')
+		
+	  headerdiv = document.createElement('div')
+          headerdiv.classList.add('card-header')
+		
           imgdiv = document.createElement('div')
-          imgdiv.classList.add('inline')
+          imgdiv.classList.add('col-4')
           imgdiv.style.backgroundColor = color;
+		
           textdiv = document.createElement('div')
-          textdiv.classList.add('inline')
+          textdiv.classList.add('col-8')
           
           controlsdiv = document.createElement('div')
           controlsdiv.classList.add('inline')
@@ -686,7 +790,7 @@ var c = function() {
           pricediv = document.createElement('div')
           pricediv.classList.add('price')
           
-          para1 = document.createElement('p')
+          //para1 = document.createElement('p')
           para2 = document.createElement('p')
           para3 = document.createElement('pre')
 
@@ -701,7 +805,7 @@ var c = function() {
 
           a.appendChild(image)
           imgdiv.appendChild(a)
-          para1.appendChild(text1)
+          //para1.appendChild(text1)
           
           b = document.createElement('b')
           b.appendChild(text2)
@@ -745,7 +849,7 @@ var c = function() {
           }
 
           textdiv.appendChild(controlsdiv)
-          textdiv.appendChild(para1)
+          headerdiv.appendChild(text1)
           textdiv.appendChild(para2)
 
           para3.appendChild(text3)
@@ -753,9 +857,20 @@ var c = function() {
           
           pricediv.appendChild(search)
 
-          div.appendChild(imgdiv)
-          div.appendChild(textdiv)
-          div.appendChild(pricediv)
+	  cardbodywrap = document.createElement('div')
+          cardbodywrap.classList.add('card-body')
+	  
+	  cardbodydiv = document.createElement('div')
+          cardbodydiv.classList.add('row')
+		
+	  cardbodywrap.appendChild(cardbodydiv);
+		
+	  cardbodydiv.appendChild(imgdiv)
+          cardbodydiv.appendChild(textdiv)
+          textdiv.appendChild(pricediv)
+		
+	  div.appendChild(headerdiv)
+	  div.appendChild(cardbodywrap)
 
           consoleDiv.appendChild(div)
         },
