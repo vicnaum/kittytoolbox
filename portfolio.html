@@ -542,7 +542,7 @@ function getReqParam(name){
 }
 
 function ownersCats() {
-  if (typeof web3 !== 'undefined' && user !== 'undefined') {
+  if (typeof web3 !== 'undefined' && typeof user !== 'undefined') {
     return (owner.toLowerCase() == user.toLowerCase())
   } else {
     return false
