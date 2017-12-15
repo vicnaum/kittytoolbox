@@ -78,28 +78,37 @@ a {
 <div class="container">
 	<div class="row">
     <div class="col">
-<h1>Kitty-Toolbox - Portfolio Estimation</h1>
+      <h1>Kitty-Toolbox - Portfolio Estimation</h1>
 		</div>
 	</div>
-	<div class=row">
+	<div class="row mb-3">
+			<div class="col">
         <span class="toggleButton" id="toggleQueue" onclick="toggleQueue()">Queue: ...</span>
         &nbsp;&nbsp;&nbsp;&nbsp; Portfolios in DB: <span id="processed" style="font-weight: bold">...</span>
-<div id="queueInfo" style="display:none">
-Loading...
-</div>
+      </div>
+  </div>
+	<div class="row">
+		<div class="col">
+      <div class="card" id="queueInfo" style="display:none;">
+        <div class="card-block">
+          Loading...
+        </div>
+      </div>
+    </div>
+  </div>
+  
 	<div class="row">
 			<div class="col">
-					
-<p>
-	<a href="/kittytoolbox/">Rarity Calculator</a> 
-			   Estimate Portfolio Tool 
-			   Your MetaMask Address: <span style="font-weight: bold" id="metamaskSpan">...</span> 
-		(Balance: <span id="balanceSpan" style="font-size:32px; font-weight: bold">...</span> ETH)
-</p>
-<p>
-	Test it with <a href="/kittytoolbox/portfolio.html?owner=0x79635b386b9bd6636cd701879c32e6dd181c853f">
-	0x79635b386b9bd6636cd701879c32e6dd181c853f</a> to see how it works
-</p>
+        <p>
+          <a href="/kittytoolbox/">Rarity Calculator</a> 
+                Estimate Portfolio Tool 
+                Your MetaMask Address: <span style="font-weight: bold" id="metamaskSpan">...</span> 
+            (Balance: <span id="balanceSpan" style="font-size:32px; font-weight: bold">...</span> ETH)
+        </p>
+        <p>
+          Test it with <a href="/kittytoolbox/portfolio.html?owner=0x79635b386b9bd6636cd701879c32e6dd181c853f">
+          0x79635b386b9bd6636cd701879c32e6dd181c853f</a> to see how it works
+        </p>
 </div>
 </div>
 												       
@@ -217,7 +226,7 @@ Loading...
       str = "Currently 0 requests in queue"
     }
 
-    document.getElementById("queueInfo").innerHTML = str
+    document.getElementById("queueInfo").innerHTML = `<div class="card-body">${str}</div>`
   }
 
   setInterval(loadQueue, 30000)
