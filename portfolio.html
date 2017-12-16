@@ -110,12 +110,18 @@ a {
     <div class="col">
       <h1>Kitty-Toolbox - Portfolio Estimation</h1>
 		</div>
-	</div>
+  </div>
 	<div class="row mb-3">
-			<div class="col">
-        <span class="toggleButton" id="toggleQueue" onclick="toggleQueue()">Queue: ...</span>
-        &nbsp;&nbsp;&nbsp;&nbsp; Portfolios in DB: <span id="processed" style="font-weight: bold">...</span>
-      </div>
+    <div class="col">
+      <a href="/kittytoolbox/">Rarity Calculator</a> 
+      &nbsp;&nbsp;&nbsp; Estimate Portfolio Tool 
+    </div>
+  </div>
+  <div class="row mb-3">
+    <div class="col">
+      <span class="toggleButton" id="toggleQueue" onclick="toggleQueue()">Queue: ...</span>
+      &nbsp;&nbsp;&nbsp;&nbsp; Portfolios in DB: <span id="processed" style="font-weight: bold">...</span>
+    </div>
   </div>
 	<div class="row">
 		<div class="col">
@@ -130,10 +136,8 @@ a {
 	<div class="row">
 			<div class="col">
         <p>
-          <a href="/kittytoolbox/">Rarity Calculator</a> 
-                Estimate Portfolio Tool 
-                Your MetaMask Address: <span style="font-weight: bold" id="metamaskSpan">...</span> 
-            (Balance: <span id="balanceSpan" style="font-size:32px; font-weight: bold">...</span> ETH)
+          Your MetaMask Address: <span style="font-weight: bold" id="metamaskSpan">...</span> 
+          (Balance: <span id="balanceSpan" style="font-size:32px; font-weight: bold">...</span> ETH)
         </p>
         <p>
           Test it with <a href="/kittytoolbox/portfolio.html?owner=0x79635b386b9bd6636cd701879c32e6dd181c853f">
@@ -361,11 +365,10 @@ function checkPaymentScreen(owner, res) {
         if (donation<0.01) {donation = 0.01}
         
         let elem = document.createElement('p')
-        elem.innerHTML = `<div id="donationInfo"><span style="font-size: 25px">Suggested donation for processing ${ownerCatsCount} cats is:</span> &nbsp;&nbsp; <span style="font-size:30px">${donation} ETH</span> &nbsp&nbsp <button style="height: 25px; vertical-align: text-bottom" id="donateButton" onclick="donate(${donation})">Pay with MetaMask</button><img src="ajax-loader.gif" style="display:none; height:25px; vertical-align: text-bottom" id="donationLoader">`+
-        `<p><span style="font-size: 25px">Your portfolio will be queued for processing after the donation transaction is approved by the network.</span></p></div><br><br>`+
+        elem.innerHTML = `<div id="donationInfo"><span style="font-size: 25px">Suggested donation for processing ${ownerCatsCount} cats is:</span> &nbsp;&nbsp; <span style="font-size:30px">${donation} ETH</span> &nbsp&nbsp <button style="vertical-align: text-bottom" id="donateButton" onclick="donate(${donation})">Pay with MetaMask</button><img src="ajax-loader.gif" style="display:none; height:30px; vertical-align: text-bottom" id="donationLoader">`+
+        `<p><span style="font-size: 25px">Your portfolio will be queued for processing after the donation transaction is approved by the network.</span></p></div><br><br>`;
         c.elem(elem)
-        c.log(`* In unpredictable situations (like if CryptoKitty API becomes restricted, Server IP banned, CK site down, etc) if there will be no possibility to retreive cats information - `)
-        c.log(`the gas fee to process refunds will be substracted from donation amount`)
+        c.log(`* In unpredictable situations (like if CryptoKitty API becomes restricted, Server IP banned, CK site down, etc) if there will be no possibility to retreive cats information - the gas fee to process refunds will be substracted from donation amount`)
       }
     }
     if (res.queue == -1) {
