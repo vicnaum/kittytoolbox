@@ -75,6 +75,36 @@ a {
 </head>
 
 <body>
+<div class="floatcorner">
+    <script id="cid0020000174407244120" data-cfasync="false" async src="//st.chatango.com/js/gz/emb.js" style="width: 250px;height: 350px;">
+      { "handle": "kittyfolio",
+        "arch": "js",
+        "styles":
+          { "a": "007bff",
+            "b": 100,
+            "c": "FFFFFF",
+            "d": "FFFFFF",
+            "k": "999999",
+            "l": "007bff",
+            "m": "999999",
+            "p": "10",
+            "q": "007bff",
+            "r": 100,
+            "t": 0,
+            "ab": false,
+            "usricon": 0,
+            "pos": "br",
+            "cv": 0,
+            "cvfntsz": "20px",
+            "cvbg":"007bff",
+  				  "cvfg":"000000",
+  				  "cvw":200,
+				    "cvh":50,
+            "surl": 0,
+            "cnrs": "0.35",
+            "fwtickm": 1 } }
+    </script>
+</div>
 <div class="container">
 	<div class="row">
     <div class="col">
@@ -120,8 +150,8 @@ a {
         <div class="form-group">
             <label for="ownerInput" class="mr-2">Owner address:</label> <input id="ownerInput" class="form-control mr-2" style="min-width: 25em"/>
         </div>
-        <button onclick="getAllCats()" class="btn btn-primary mr-2">Estimate</button> 
-        <button onclick="useMetamask()" class="btn btn-info" data-toggle="tooltip" data-placement="top" title="use this button if this is your portfolio, but you don't see "sell" and "cancel" buttons">Use MetaMask Address</button>
+        <button type="button" onclick="getAllCats()" class="btn btn-primary mr-2">Estimate</button> 
+        <button type="button" onclick="useMetamask()" class="btn btn-info" data-toggle="tooltip" data-placement="top" title="use this button if this is your portfolio, but you don't see "sell" and "cancel" buttons">Use MetaMask Address</button>
     </form>
 
     </div>
@@ -146,7 +176,7 @@ a {
 		<input type="radio" name="sellingFilter" value="sellingFalse" id="sellingFalse"  class="form-check-input"> Not Selling
  </label>
 </div>
- <button onclick="applyFilters()" class="btn btn-info">Apply</button>
+ <button type="button" onclick="applyFilters()" class="btn btn-info">Apply</button>
 </div>
 </div>
 																											
@@ -409,11 +439,11 @@ function init() {
     node.value = owner
     setTimeout(getAllCats, 1000)
   } else {
-    if (user) {
+    if (typeof user !== 'undefined') {
       const node = document.getElementById("ownerInput");
       owner = user.toLowerCase()
       node.value = owner
-      setTimeout(() => getAllCats(owner), 1000)
+      setTimeout(() => getAllCats, 1000)
     }
   }
 
@@ -424,7 +454,7 @@ function useMetamask() {
   const node = document.getElementById("ownerInput")
   node.value = user
   owner = user.toLowerCase()
-  getAllCats(owner)
+  getAllCats()
 }
 
 function replaceElement(obj, str, newObj) {
@@ -930,8 +960,8 @@ function updateMetamaskBalance(balance) {
   obj.innerText = web3.fromWei(balance).toFixed(3)
 }
 
-updateQueues()
-updateProcessed()
+setTimeout(updateQueues, 300)
+setTimeout(updateProcessed, 300)
 
 </script>
 
