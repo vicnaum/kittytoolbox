@@ -773,11 +773,11 @@ var c = function() {
           a.href = ('https://www.cryptokitties.co/kitty/'+kittyId)
 
           image = document.createElement('img')
-	  image.classList.add('img');
-	  image.classList.add('img-responsive');
+	        image.classList.add('img');
+	        image.classList.add('img-responsive');
           image.src = img
-          //image.width = 100
-          //image.height = 100
+          image.width = 336
+          image.height = 336
 
           div = document.createElement('div')
           div.classList.add('card')
@@ -788,7 +788,7 @@ var c = function() {
 		
           imgdiv = document.createElement('div')
           imgdiv.classList.add('col-4')
-          imgdiv.style.backgroundColor = color;
+          imgdiv.style.backgroundColor = color
 		
           textdiv = document.createElement('div')
           textdiv.classList.add('col-8')
