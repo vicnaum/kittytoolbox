@@ -212,6 +212,21 @@ a {
 </div>
 </div>
 
+<div class="row mb-3" id="updatePortfolioButton" style="display:none;">
+  <div class="col">
+    <button type="button" onclick="updatePortfolio()" class="btn btn-primary mr-2">Update Portfolio</button> - can be used only once a day
+  </div>
+</div>
+<div class="row">
+  <div class="col">
+    <div class="card" id="updateMessage" style="display:none;">
+      <div class="card-block">
+        ...
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="row">
 <div class="col">
 <div id='console'></div>
@@ -225,6 +240,34 @@ a {
 	
 	<script>
   var queueShown = false
+
+  function showUpdatePortfolioButton() {
+    document.getElementById("updatePortfolioButton").style.display = 'block'
+
+  }
+
+
+  function hideUpdatePortfolioButton() {
+    document.getElementById("updatePortfolioButton").style.display = 'none'
+    updateMessage = document.getElementById("updateMessage")
+    updateMessage.innerHTML = `<div class="card-block">...</div>`
+    updateMessage.style.display = "none";
+  }
+
+
+  function updatePortfolio() {
+    console.log(`Checking for updates for ${owner}`)
+    updateMessage = document.getElementById("updateMessage")
+    updateMessage.style.display = "block";
+    updateMessage.innerHTML = `<div class="card-block"><img src="ajax-loader.gif" style="height:30px; margin-left: 100px; vertical-align: text-bottom"></div>`
+    setTimeout(performUpdatePortfolio, 100)
+  }
+
+  function performUpdatePortfolio() {
+    updateMessage = document.getElementById("updateMessage")
+    response = kittytoolbox.updatePortfolio(owner)
+    updateMessage.innerHTML = `<div class="card-block">${(response.text)}</div>`
+  }
 
   function toggleQueue() {
     if (queueShown) {
@@ -690,6 +733,9 @@ var allCats = []
 
 
 function getAllCats() {
+  hideUpdatePortfolioButton();
+  
+
   c.cls()
   owner = document.getElementById("ownerInput").value.trim().toLowerCase();
   showLoading()
@@ -751,6 +797,7 @@ function getPortfolio(owner, callback) {
     displayCats.forEach(cat => {
       displayCat(cat)
     });
+    showUpdatePortfolioButton();
   } else {
     checkPaymentScreen(owner, res)
   }
