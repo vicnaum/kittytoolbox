@@ -296,8 +296,8 @@ var colors = {"chestnut": "#efe1da",
 };
 
 
-//serverUrl = 'https://microetheroll.com:3331/'
-serverUrl = 'http://localhost:3331/'
+serverUrl = 'https://microetheroll.com:3331/'
+//serverUrl = 'http://localhost:3331/'
 
 exports.getPrice = getPrice
 exports.getKittyCS = getKittyCS
