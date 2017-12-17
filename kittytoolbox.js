@@ -32,7 +32,7 @@ function doRequest(url) {
   var request = new XMLHttpRequest();
   request.open('GET', url, false);  // `false` makes the request synchronous
   request.send(null);
-  
+
   if (request.status === 200) {
     return(JSON.parse(request.responseText));
   } else {
@@ -67,7 +67,7 @@ function sortCattributes(cat) {
     catrSorted.sort((a,b) => {
       return a.rarity-b.rarity
     })
-    
+
     return catrSorted
   }
   return null;
@@ -75,7 +75,7 @@ function sortCattributes(cat) {
 
 function printCattributes(cat) {
 
-  var catrSorted = sortCattributes(cat)  
+  var catrSorted = sortCattributes(cat)
 
   if (catrSorted) {
     var str = ""
@@ -132,7 +132,7 @@ function getAuction(gen, fancy, cattributes, cooldown) {
   var req = formAuctionSearchParameters(gen, fancy, cattributes, cooldown)
 
   var url = CSApi + "auctions?offset=0&limit=12&type=sale&status=open" + req + '&sorting=cheap&orderBy=current_price&orderDirection=asc'
-  
+
   var res
   while (!res) {
     res = doRequest(url)
@@ -142,7 +142,7 @@ function getAuction(gen, fancy, cattributes, cooldown) {
 
 function getSearchLink(gen, fancy, cattributes, cooldown) {
     var req = formAuctionSearchParameters(gen, fancy, cattributes, cooldown)
-    return "https://www.cryptokitties.co/marketplace/sale?orderBy=current_price&orderDirection=asc&" + req + '&sorting=cheap'    
+    return "https://www.cryptokitties.co/marketplace/sale?orderBy=current_price&orderDirection=asc&" + req + '&sorting=cheap'
 }
 
 function getAuctions(cat, sortedCattributes, threshold) {
@@ -150,7 +150,7 @@ function getAuctions(cat, sortedCattributes, threshold) {
   var gen
   var cattributes
   var cooldown
-  
+
   gen = Array.from({length: cat.generation+1}, (v, k) => k).join(",");
   cooldown = Array.from({length: cat.status.cooldown_index+1}, (v, k) => cooldowns[k]).join(",");
 
@@ -161,7 +161,7 @@ function getAuctions(cat, sortedCattributes, threshold) {
     auctionsTotal = 0
     var searchCattributes = []
     var excludedCattributes = []
-    
+
     for (let i=0; i<sortedCattributes.length && sortedCattributes[i].rarity<=11; i++) {
       searchCattributes.push(sortedCattributes[i].description)
     }
@@ -191,7 +191,7 @@ function getAuctions(cat, sortedCattributes, threshold) {
 
 function getPricesFromAuctions(auctions) {
     var prices = []
-  
+
     auctions.auctions.forEach(auction => {
       var price = auction.current_price
       prices.push(fromWei(price))
@@ -237,7 +237,7 @@ function getPrice(cat, threshold) {
   var searchCattributes = ret[1]
   var excludedCattributes = ret[2]
   var searchLink = ret[3]
-  
+
   return processAuctions(auctions, cat, searchCattributes, excludedCattributes, searchLink)
 }
 
@@ -255,6 +255,11 @@ function getKittiesCount(owner) {
 
 function queuePortfolio(owner) {
   url = serverUrl+'queuePortfolio?owner='+owner;
+  return doRequest(url)
+}
+
+function updatePortfolio(owner) {
+  url = serverUrl+'updatePortfolio?owner='+owner;
   return doRequest(url)
 }
 
@@ -291,8 +296,8 @@ var colors = {"chestnut": "#efe1da",
 };
 
 
-serverUrl = 'https://microetheroll.com:3331/'
-//serverUrl = 'http://localhost:3331/'
+//serverUrl = 'https://microetheroll.com:3331/'
+serverUrl = 'http://localhost:3331/'
 
 exports.getPrice = getPrice
 exports.getKittyCS = getKittyCS
@@ -315,5 +320,6 @@ exports.getPortfolioQueue = getPortfolioQueue
 exports.getProcessQueue = getProcessQueue
 exports.getQueues = getQueues
 exports.getProcessed = getProcessed
+exports.updatePortfolio = updatePortfolio
 
 })(typeof exports === 'undefined'? this['kittytoolbox']={}: exports);
