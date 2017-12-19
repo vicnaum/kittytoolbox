@@ -332,7 +332,8 @@ a {
     gasInput.value = '...'
     const proxyUrl = "https://cors-anywhere.herokuapp.com/";
     let ethgasApi = `https://ethgasstation.info/json/ethgasAPI.json`
-    let gasPrices = kittytoolbox.doRequest(proxyUrl+ethgasApi)
+//    let gasPrices = kittytoolbox.doRequest(proxyUrl+ethgasApi)
+    let gasPrices = kittytoolbox.doRequest(ethgasApi)
     gasInput.value = Math.round(gasPrices.average/10)
     console.log(Math.round(gasPrices.average/10))
   }
@@ -477,17 +478,17 @@ function paidUpdate(donation) {
   let loader = document.getElementById("paidUpdateLoader")
   loader.style.display = "inline-block"
 
-  const proxyUrl = "https://cors-anywhere.herokuapp.com/";
-  let ethgasApi = `https://ethgasstation.info/json/ethgasAPI.json`
-  let gasPrices = kittytoolbox.doRequest(proxyUrl+ethgasApi)
-  var gasPrice = Math.round(gasPrices.average/10)
+  // const proxyUrl = "https://cors-anywhere.herokuapp.com/";
+  // let ethgasApi = `https://ethgasstation.info/json/ethgasAPI.json`
+  // let gasPrices = kittytoolbox.doRequest(proxyUrl+ethgasApi)
+  // var gasPrice = Math.round(gasPrices.average/10)
 
 
   web3.eth.sendTransaction({
 		to: donationAddress,
 		value: web3.toWei(donation),
 		gas: '21000',
-    gasPrice: web3.toWei(gasPrice, "Gwei")
+//    gasPrice: web3.toWei(gasPrice, "Gwei")
 	}, (error, result) => {
 		paidUpdateFinish(error, result)
 	});
