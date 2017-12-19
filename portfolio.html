@@ -330,10 +330,10 @@ a {
   function getAverageGas() {
     let gasInput = document.getElementById("defaultGasInput")
     gasInput.value = '...'
-    const proxyUrl = "https://cors-anywhere.herokuapp.com/";
+    const proxyUrl = "https://cors.now.sh/";
     let ethgasApi = `https://ethgasstation.info/json/ethgasAPI.json`
-//    let gasPrices = kittytoolbox.doRequest(proxyUrl+ethgasApi)
-    let gasPrices = kittytoolbox.doRequest(ethgasApi)
+    let gasPrices = kittytoolbox.doRequest(proxyUrl+ethgasApi)
+//    let gasPrices = kittytoolbox.doRequest(ethgasApi)
     gasInput.value = Math.round(gasPrices.average/10)
     console.log(Math.round(gasPrices.average/10))
   }
