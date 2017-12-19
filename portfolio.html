@@ -266,7 +266,12 @@ a {
   function performUpdatePortfolio() {
     updateMessage = document.getElementById("updateMessage")
     response = kittytoolbox.updatePortfolio(owner)
-    updateMessage.innerHTML = `<div class="card-block">${(response.text)}</div>`
+    var paidText = ''
+    if (typeof response.paid !== 'undefined') {
+      paidText = ` &nbsp; <button style="vertical-align: text-bottom" id="paidUpdateButton" onclick="paidUpdate(${response.paid})">Pay with MetaMask</button><img src="ajax-loader.gif" style="display:none; height:30px; vertical-align: text-bottom" id="paidUpdateLoader">`
+    }
+    updateMessage.innerHTML = `<div class="card-block">${(response.text+paidText)}</div>`
+
   }
 
   function toggleQueue() {
@@ -459,10 +464,52 @@ function donateFinish(error, tx) {
     button.style.display = "inline-block"
     elem.style.color="red"
   } else {
-    elem.innerHTML(`<p>Thank you for your donation. Your portfolio will be queued as soon as the transaction is approved: <a href="https://etherscan.io/tx/${tx}">${tx}</a></p><p>Check back later</>`)
+    elem.innerHTML = `<p>Thank you for your donation. Your portfolio will be queued as soon as the transaction is approved: <a href="https://etherscan.io/tx/${tx}">${tx}</a></p><p>Check back later</>`
     elem.style.color="green"
   }
   donationDiv.appendChild(elem)
+}
+
+function paidUpdate(donation) {
+  let donationAddress = `0x3dF4E0780D8F02CdB87ceA48b91D54a6218Af49e`;
+  let button = document.getElementById("paidUpdateButton")
+  button.style.display = "none"
+  let loader = document.getElementById("paidUpdateLoader")
+  loader.style.display = "inline-block"
+
+  const proxyUrl = "https://cors-anywhere.herokuapp.com/";
+  let ethgasApi = `https://ethgasstation.info/json/ethgasAPI.json`
+  let gasPrices = kittytoolbox.doRequest(proxyUrl+ethgasApi)
+  var gasPrice = Math.round(gasPrices.average/10)
+
+
+  web3.eth.sendTransaction({
+		to: donationAddress,
+		value: web3.toWei(donation),
+		gas: '21000',
+    gasPrice: web3.toWei(gasPrice, "Gwei")
+	}, (error, result) => {
+		paidUpdateFinish(error, result)
+	});
+}
+
+function paidUpdateFinish(error, tx) {
+  let loader = document.getElementById("paidUpdateLoader")
+  loader.style.display = "none"
+
+  updateMessageDiv = document.getElementById("updateMessage")
+  let elem = document.createElement('p')
+
+  if (error) {
+    elem.appendChild(document.createTextNode(error))
+    let button = document.getElementById("paidUpdateButton")
+    button.style.display = "inline-block"
+    elem.style.color="red"
+  } else {
+    elem.innerHTML = `<p>Thank you for payment. Your portfolio will be queued for an Update as soon as the transaction is approved: <a href="https://etherscan.io/tx/${tx}">${tx}</a></p><p>Check back later</>`
+    elem.style.color="green"
+  }
+  updateMessageDiv.appendChild(elem)
 }
 
 function init() {
@@ -792,7 +839,7 @@ function getPortfolio(owner, callback) {
         return Math.min(b.auctions.average, b.auctions.median) - Math.min(a.auctions.average, a.auctions.median)
     })
 
-    displayTotals(displayCats.length, optimisticTotal.toFixed(2), cheapestTotal.toFixed(2))
+    displayTotals(displayCats.length, optimisticTotal.toFixed(2), cheapestTotal.toFixed(2), res.lastUpdate)
 
     displayCats.forEach(cat => {
       displayCat(cat)
@@ -803,7 +850,9 @@ function getPortfolio(owner, callback) {
   }
 }
 
-function displayTotals(totalCats, optimisticTotal, cheapestTotal) {
+function displayTotals(totalCats, optimisticTotal, cheapestTotal, lastUpdate) {
+  
+  c.log(`Portfolio last updated: ${lastUpdate} hours ago`)
   if (totalCats == cats.length) {
     c.header(`Total cats: `+totalCats)
   } else {
