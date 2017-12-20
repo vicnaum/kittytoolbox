@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-3332966-8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-3332966-8');
+</script>
+
+<title>Kitty-Toolbox - Rarity Calculation</title>
+<script src="kittytoolbox.js"></script>
+<style>
+img {
+  vertical-align: middle;
+  }
+.row {
+  border: 1px solid gray;
+}
+.inline {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 20px;
+}
+#toggleInfoButton {
+  border-bottom: dashed 1px;
+  padding: 5px;
+  color: rgb(3, 104, 145);
+  font-weight: bold;
+}
+
+#toggleInfoButton:hover {
+  cursor: pointer;
+}
+a {
+  color: rgb(3, 104, 145);
+}
+
+</style>
+<script>
+  var infoShown = false
+
+  function toggleInfo() {
+    if (infoShown) {
+      document.getElementById("info").style.display = 'none'
+      document.getElementById("toggleInfoButton").innerText = 'Show Info - How it works?'
+    } else {
+      document.getElementById("info").style.display = 'block'
+      document.getElementById("toggleInfoButton").innerText = 'Hide Info'
+    }
+    infoShown = !infoShown
+  }
+</script>
+</head>
+
+<body>
+<h1>KittyToolbox - CryptoKitties Cat Rarity Calculator & Price Estimation!</h1>
+<p>Rarity Calculator &nbsp;&nbsp;&nbsp;&nbsp; <a href="portfolio.html">Estimate Portfolio Tool</a></p>
+<p style="font-size: 20px">RARITY SCORE is approximately calculated based on rarity of cattributes & gen & cooldown.</p>
+<span id="toggleInfoButton" onclick="toggleInfo()">Show Info - How it works?</span>
+<div id="info" style="display:none">
+  <p style="font-size: 20px">All cattributes values are multiplied together and normalized*</p>
+  <p>* "normalization" is approximate - so you can get values slightly over 100% from time to time - that's ok</p>
+  <p>The tool doesn't account for genes rarity (randomness) yet.</p>
+  <p>For example, if you breed a bird with a cat - you can get a simple common cat. But as it's father was a bird - it can give you a bird or rare traits in the next generations!</p>
+  <p style="color:green"><b>Price Estimation is READY!</b> Please don't overuse it - CS servers are slow already...</p>
+</div>
+<p style="font-size: 20px"><b>0%</b> is VERY RARE And Expensive. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  <b>100%</b> is Very Common and Cheap.</p>
+
+
+
+<div id='console'></div>
+<div id='loader' style="width: 100%; height: 100px; display: none"><span style="display: inline-block; height: 100%; vertical-align: middle"></span><img src="ajax-loader.gif" style="margin-left: 150px; vertical-align: middle"></div>
+<div style="margin-top: 20px">
+KittyId: <input id="kittyId"/>
+<button onclick="searchCat()">Estimate</button>
+<button onclick="c.cls()">Clear</button>
+</div>
+</body>
+
+<script>
+const node = document.getElementById("kittyId");
+node.addEventListener('keydown', function(event) {
+    if (event.key === "Enter") {
+      searchCat()
+	node.value = ""
+    }
+});
+
+var cats = []
+
+function searchCat(kittyId) {
+  showLoading()
+  kittyId = document.getElementById("kittyId").value;
+  setTimeout(()=>{getRarity(kittyId, hideLoading)}, 100)
+}
+
+function hideLoading() {
+  document.getElementById("loader").style = "width: 100%; height: 100px; display: none;";
+}
+
+function showLoading() {
+  document.getElementById("loader").style = "width: 100%; height: 100px; display: block;";
+}
+
+var threshold = 8
+
+function getRarity(kittyId, callback) {
+  var cat = kittytoolbox.getKittyCS(kittyId)
+  cats[kittyId] = cat
+
+  console.log(cat)
+
+  var rarity = (kittytoolbox.calculateRarity(cat)*100*100000).toFixed(5)
+  var priceData = kittytoolbox.getPrice(cat, threshold)
+
+  c.log(cat.image_url, `#${kittyId} - ${cat.name} - GEN:${cat.generation} - Cooldown:${cat.status.cooldown_index}`,
+                       `RARITY: ${rarity}% === ` + kittytoolbox.printCattributes(cat),
+                       priceData[0], priceData[1], cat.id, kittytoolbox.colors[cat.color])
+  
+  callback()
+}
+
+/* console.log function from: http://www.kobashicomputing.com/send-your-console-output-to-the-result-pane-in-jsfiddle */
+var c = function() {
+    return({
+        log: function(img, line1, line2, line3, searchLink, kittyId, color) {
+          consoleDiv = document.getElementById('console')
+
+          a = document.createElement('a')
+          a.href = ('https://www.cryptokitties.co/kitty/'+kittyId)
+
+          image = document.createElement('img')
+          image.src = img
+          image.width = 100
+          image.height = 100
+
+          div = document.createElement('div')
+          div.classList.add('row')
+          imgdiv = document.createElement('div')
+          imgdiv.classList.add('inline')
+          imgdiv.style.backgroundColor = color;
+          console.log(color)
+          textdiv = document.createElement('div')
+          textdiv.classList.add('inline')
+          pricediv = document.createElement('div')
+          pricediv.classList.add('price')
+          para1 = document.createElement('p')
+          para2 = document.createElement('p')
+          para3 = document.createElement('pre')
+          text1 = document.createTextNode(line1)
+          text2 = document.createTextNode(line2)
+          text3 = document.createTextNode(line3)
+
+          search = document.createElement('a')
+          search.href = searchLink
+          search.appendChild(document.createTextNode('See Searched Auctions'))
+          
+
+          a.appendChild(image)
+          imgdiv.appendChild(a)
+          para1.appendChild(text1)
+          
+          b = document.createElement('b')
+          b.appendChild(text2)
+          para2.appendChild(b)
+          textdiv.appendChild(para1)
+          textdiv.appendChild(para2)
+
+          para3.appendChild(text3)
+          pricediv.appendChild(para3)
+          
+          pricediv.appendChild(search)
+
+          div.appendChild(imgdiv)
+          div.appendChild(textdiv)
+          div.appendChild(pricediv)
+
+          consoleDiv.appendChild(div)
+        },
+        cls: function(msg) {
+          consoleDiv = document.getElementById('console');
+          consoleDiv.innerHTML='';
+        }
+    });
+}();
+
+</script>
+
+</html>
